@@ -21,12 +21,13 @@ func (s *ZipService) encode(str string) string {
 }
 
 func (s *ZipService) ZipURL(url string) (string, error) {
+	const baseURL string = "http://localhost:8080/"
 	if url == "" {
 		return "", errors.New("url is empty")
 	}
 	key := s.encode(url)
 	s.store[key] = url
-	return key, nil
+	return baseURL + key, nil
 }
 
 func (s *ZipService) UnzipURL(key string) (string, error) {
