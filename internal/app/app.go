@@ -15,7 +15,7 @@ import (
 */
 
 func Start() {
-	h := NewZipUrlHandler()
+	h := NewZipURLHandler()
 	// маршрутизация запросов обработчику
 	http.HandleFunc("/", h.Handler)
 	// запуск сервера с адресом localhost, порт 8080

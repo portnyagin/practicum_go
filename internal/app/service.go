@@ -5,13 +5,6 @@ import (
 	"errors"
 )
 
-/*
-type Service interface {
-	ZipUrl(url string) (string,error)
-	UnzipUrl (key string) (string, error)
-}
-*/
-
 type ZipService struct {
 	store map[string]string
 }
@@ -27,7 +20,7 @@ func (s *ZipService) encode(str string) string {
 	return sha
 }
 
-func (s *ZipService) ZipUrl(url string) (string, error) {
+func (s *ZipService) ZipURL(url string) (string, error) {
 	if url == "" {
 		return "", errors.New("url is empty")
 	}
@@ -36,7 +29,7 @@ func (s *ZipService) ZipUrl(url string) (string, error) {
 	return key, nil
 }
 
-func (s *ZipService) UnzipUrl(key string) (string, error) {
+func (s *ZipService) UnzipURL(key string) (string, error) {
 	if val, ok := s.store[key]; ok {
 		return val, nil
 	}
