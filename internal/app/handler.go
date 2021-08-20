@@ -45,7 +45,7 @@ func (z *ZipUrlHandler) postMethodHandler(w http.ResponseWriter, r *http.Request
 		return
 	} else {
 		res, _ := z.service.ZipUrl(string(b))
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusCreated)
 		w.Write([]byte(res))
 		return
 	}
