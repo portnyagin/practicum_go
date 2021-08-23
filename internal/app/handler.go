@@ -82,7 +82,6 @@ func (z *ZipURLHandler) getMethodHandler(w http.ResponseWriter, r *http.Request)
 		}
 		w.Header().Set("Location", res)
 		w.WriteHeader(http.StatusTemporaryRedirect)
-		//w.Write([]byte(res))
 		return
 	}
 }
