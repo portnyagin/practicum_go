@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/stretchr/testify/mock"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -73,7 +74,12 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 			}
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
-				defer res.Body.Close()
+				defer func() {
+					err := res.Body.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}

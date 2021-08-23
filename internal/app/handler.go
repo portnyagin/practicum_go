@@ -2,6 +2,7 @@ package app
 
 import (
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -38,7 +39,12 @@ func (z *ZipURLHandler) Handler(w http.ResponseWriter, r *http.Request) {
 
 func (z *ZipURLHandler) postMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
+	defer func() {
+		err := r.Body.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
