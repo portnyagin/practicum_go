@@ -14,9 +14,9 @@ type ZipURLHandler struct {
 	service Service
 }
 
-func NewZipURLHandler() *ZipURLHandler {
+func NewZipURLHandler(service Service) *ZipURLHandler {
 	var h ZipURLHandler
-	h.service = NewZipService()
+	h.service = service
 	return &h
 }
 
@@ -54,6 +54,7 @@ func (z *ZipURLHandler) postMethodHandler(w http.ResponseWriter, r *http.Request
 		res, _ := z.service.ZipURL(string(b))
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(res))
+
 		return
 	}
 }
