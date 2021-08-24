@@ -16,7 +16,8 @@ import (
 */
 
 func Start() {
-	service := NewZipService()
+	repo := NewBaseRepository()
+	service := NewZipService(repo)
 	h := NewZipURLHandler(service)
 	// маршрутизация запросов обработчику
 	http.HandleFunc("/", h.Handler)
