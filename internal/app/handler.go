@@ -21,6 +21,7 @@ func NewZipURLHandler(service Service) *ZipURLHandler {
 	return &h
 }
 
+/*
 func (z *ZipURLHandler) Handler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
@@ -34,10 +35,9 @@ func (z *ZipURLHandler) Handler(w http.ResponseWriter, r *http.Request) {
 			panic("Can't write response")
 		}
 	}
-
 }
-
-func (z *ZipURLHandler) postMethodHandler(w http.ResponseWriter, r *http.Request) {
+*/
+func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	defer func() {
 		err := r.Body.Close()
@@ -65,7 +65,7 @@ func (z *ZipURLHandler) postMethodHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (z *ZipURLHandler) getMethodHandler(w http.ResponseWriter, r *http.Request) {
+func (z *ZipURLHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	key := r.RequestURI[1:]
 	if key == "" {
 		w.WriteHeader(http.StatusBadRequest)
