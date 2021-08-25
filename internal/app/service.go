@@ -5,19 +5,25 @@ import (
 	"errors"
 )
 
+type EncodeFunc func(str string) string
+
 type ZipService struct {
-	store map[string]string
+	repository Repository
+	encode     EncodeFunc
 }
 
-func NewZipService() *ZipService {
+type Repository interface {
+	Find(key string) (string, error)
+	Save(key string, value string) error
+}
+
+func NewZipService(repo Repository) *ZipService {
 	var s ZipService
-	s.store = make(map[string]string)
+	s.repository = repo
+	s.encode = func(str string) string {
+		return base64.StdEncoding.EncodeToString([]byte(str))
+	}
 	return &s
-}
-
-func (s *ZipService) encode(str string) string {
-	sha := base64.StdEncoding.EncodeToString([]byte(str))
-	return sha
 }
 
 func (s *ZipService) ZipURL(url string) (string, error) {
@@ -26,13 +32,11 @@ func (s *ZipService) ZipURL(url string) (string, error) {
 		return "", errors.New("URL is empty")
 	}
 	key := s.encode(url)
-	s.store[key] = url
+	s.repository.Save(key, url)
 	return baseURL + key, nil
 }
 
 func (s *ZipService) UnzipURL(key string) (string, error) {
-	if val, ok := s.store[key]; ok {
-		return val, nil
-	}
-	return "", errors.New("key not found")
+	res, err := s.repository.Find(key)
+	return res, err
 }
