@@ -135,8 +135,7 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 	}
 }
 
-/*
-func TestZipURLHandler_other(t *testing.T) {
+func TestZipURLHandler_DefaultHandler(t *testing.T) {
 	type args struct {
 		method string
 	}
@@ -149,19 +148,19 @@ func TestZipURLHandler_other(t *testing.T) {
 		args  args
 		wants wants
 	}{
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #1.",
 			args:  args{method: "PUT"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #2.",
 			args:  args{method: "PATCH"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #3.",
 			args:  args{method: "DELETE"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #4.",
 			args:  args{method: "HEAD"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
@@ -170,7 +169,7 @@ func TestZipURLHandler_other(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.args.method, "/", nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.PostMethodHandler)
+			h := http.HandlerFunc(handler.DefaultHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			fmt.Println(res)
@@ -191,4 +190,3 @@ func TestZipURLHandler_other(t *testing.T) {
 		})
 	}
 }
-*/

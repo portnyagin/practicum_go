@@ -21,22 +21,14 @@ func NewZipURLHandler(service Service) *ZipURLHandler {
 	return &h
 }
 
-/*
-func (z *ZipURLHandler) Handler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		z.getMethodHandler(w, r)
-	case http.MethodPost:
-		z.postMethodHandler(w, r)
-	default:
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := w.Write([]byte("Unsupported request type"))
-		if err != nil {
-			panic("Can't write response")
-		}
+func (z *ZipURLHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusBadRequest)
+	_, err := w.Write([]byte("Unsupported request type"))
+	if err != nil {
+		panic("Can't write response")
 	}
 }
-*/
+
 func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	defer func() {

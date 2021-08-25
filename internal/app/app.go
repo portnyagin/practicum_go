@@ -25,9 +25,13 @@ func Start() {
 	router.Use(middleware.CleanPath)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
-
-	router.Get("/", h.GetMethodHandler)
-	router.Post("/", h.PostMethodHandler)
+	router.Route("/", func(r chi.Router) {
+		r.Get("/{id}", h.GetMethodHandler)
+		r.Post("/", h.PostMethodHandler)
+		r.Put("/", h.DefaultHandler)
+		r.Patch("/", h.DefaultHandler)
+		r.Delete("/", h.DefaultHandler)
+	})
 
 	// запуск сервера с адресом localhost, порт 8080
 

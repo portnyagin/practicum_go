@@ -121,12 +121,6 @@ func TestZipService_UnzipURL(t *testing.T) {
 			want:    "full_URL",
 			wantErr: false,
 		},
-		/*	{
-			name:    "UnzipURL Test 2",
-			key:     "",
-			want:    "short_URL",
-			wantErr: true,
-		},*/
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
