@@ -21,23 +21,15 @@ func NewZipURLHandler(service Service) *ZipURLHandler {
 	return &h
 }
 
-func (z *ZipURLHandler) Handler(w http.ResponseWriter, r *http.Request) {
-	switch r.Method {
-	case http.MethodGet:
-		z.getMethodHandler(w, r)
-	case http.MethodPost:
-		z.postMethodHandler(w, r)
-	default:
-		w.WriteHeader(http.StatusBadRequest)
-		_, err := w.Write([]byte("Unsupported request type"))
-		if err != nil {
-			panic("Can't write response")
-		}
+func (z *ZipURLHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusBadRequest)
+	_, err := w.Write([]byte("Unsupported request type"))
+	if err != nil {
+		panic("Can't write response")
 	}
-
 }
 
-func (z *ZipURLHandler) postMethodHandler(w http.ResponseWriter, r *http.Request) {
+func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	defer func() {
 		err := r.Body.Close()
@@ -60,17 +52,19 @@ func (z *ZipURLHandler) postMethodHandler(w http.ResponseWriter, r *http.Request
 		res, _ := z.service.ZipURL(string(b))
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(res))
-
+		if err != nil {
+			panic("Can't write response")
+		}
 		return
 	}
 }
 
-func (z *ZipURLHandler) getMethodHandler(w http.ResponseWriter, r *http.Request) {
-	key := r.RequestURI[1:]
-	if key == "" {
+func (z *ZipURLHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
+	if r.RequestURI == "" || r.RequestURI[1:] == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
+		key := r.RequestURI[1:]
 		res, err := z.service.UnzipURL(key)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)

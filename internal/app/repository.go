@@ -16,7 +16,7 @@ func (r *BaseRepository) Find(key string) (string, error) {
 	if val, ok := r.store[key]; ok {
 		return val, nil
 	} else {
-		return "", errors.New("Can't find value")
+		return "", errors.New("can't find value")
 	}
 }
 

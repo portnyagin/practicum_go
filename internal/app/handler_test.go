@@ -68,14 +68,13 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/", strings.NewReader(tt.args.requestBody))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.Handler)
+			h := http.HandlerFunc(handler.PostMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			fmt.Println(res)
 
-			if res.StatusCode != tt.wants.responseCode {
-				t.Errorf("Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
-			}
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
 				defer func() {
@@ -87,9 +86,8 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
-				if string(responseBody) != tt.wants.resultResponse {
-					t.Errorf("Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
-				}
+				assert.Equal(t, tt.wants.resultResponse, string(responseBody), "Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
+
 			}
 		})
 	}
@@ -121,11 +119,15 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest("GET", fmt.Sprintf("/%s", tt.args.shortURLKey), nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.Handler)
+			h := http.HandlerFunc(handler.GetMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			fmt.Println(res)
-
+			defer func() {
+				err := res.Body.Close()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			if res.StatusCode == tt.wants.responseCode {
@@ -135,7 +137,7 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 	}
 }
 
-func TestZipURLHandler_other(t *testing.T) {
+func TestZipURLHandler_DefaultHandler(t *testing.T) {
 	type args struct {
 		method string
 	}
@@ -148,19 +150,19 @@ func TestZipURLHandler_other(t *testing.T) {
 		args  args
 		wants wants
 	}{
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #1.",
 			args:  args{method: "PUT"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #2.",
 			args:  args{method: "PATCH"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #3.",
 			args:  args{method: "DELETE"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
-		{name: "Other http method test #1 (Positive).",
+		{name: "Other http method test #4.",
 			args:  args{method: "HEAD"},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: "Unsupported request type"},
 		},
@@ -169,11 +171,15 @@ func TestZipURLHandler_other(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.args.method, "/", nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.Handler)
+			h := http.HandlerFunc(handler.DefaultHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			fmt.Println(res)
-
+			defer func() {
+				err := res.Body.Close()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			responseBody, err := io.ReadAll(res.Body)
