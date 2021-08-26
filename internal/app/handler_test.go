@@ -73,9 +73,8 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 			res := w.Result()
 			fmt.Println(res)
 
-			if res.StatusCode != tt.wants.responseCode {
-				t.Errorf("Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
-			}
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
 				defer func() {
@@ -87,9 +86,8 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
-				if string(responseBody) != tt.wants.resultResponse {
-					t.Errorf("Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
-				}
+				assert.Equal(t, tt.wants.resultResponse, string(responseBody), "Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
+
 			}
 		})
 	}
