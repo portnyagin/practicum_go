@@ -7,26 +7,6 @@ import (
 	"testing"
 )
 
-/*
-
-
-func TestZipService_UnZipUrl(t *testing.T) {
-	service := NewZipService()
-	key, _ := service.ZipURL("ya.ru")
-	u,_ := url.Parse(key)
-
-	res, _ := service.UnzipURL(u.Path[1:])
-	if res != "ya.ru" {
-		t.Errorf("UnZipUrl test failed.Expected %s, got %s","ya.ru", res )
-	}
-
-	res, _ = service.UnzipURL("fake key")
-	if res != "" {
-		t.Errorf("UnZipUrl test failed.Expected empty string, got %s", res )
-	}
-}
-*/
-
 type RepositoryMock struct {
 	mock.Mock
 }

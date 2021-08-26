@@ -58,11 +58,11 @@ func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (z *ZipURLHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
-	key := r.RequestURI[1:]
-	if key == "" {
+	if r.RequestURI == "" || r.RequestURI[1:] == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	} else {
+		key := r.RequestURI[1:]
 		res, err := z.service.UnzipURL(key)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
