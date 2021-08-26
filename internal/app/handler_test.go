@@ -122,8 +122,12 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 			h := http.HandlerFunc(handler.GetMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			fmt.Println(res)
-
+			defer func() {
+				err := res.Body.Close()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			if res.StatusCode == tt.wants.responseCode {
@@ -170,8 +174,12 @@ func TestZipURLHandler_DefaultHandler(t *testing.T) {
 			h := http.HandlerFunc(handler.DefaultHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			fmt.Println(res)
-
+			defer func() {
+				err := res.Body.Close()
+				if err != nil {
+					log.Fatal(err)
+				}
+			}()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			responseBody, err := io.ReadAll(res.Body)
