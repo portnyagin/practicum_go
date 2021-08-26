@@ -52,7 +52,9 @@ func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request
 		res, _ := z.service.ZipURL(string(b))
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(res))
-
+		if err != nil {
+			panic("Can't write response")
+		}
 		return
 	}
 }
