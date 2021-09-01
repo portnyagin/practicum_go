@@ -110,9 +110,8 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 		request *ShortenRequestDTO
 	}
 	type wants struct {
-		responseCode   int
-		resultResponse string
-		response       string
+		responseCode int
+		response     string
 	}
 	tests := []struct {
 		name  string
@@ -129,10 +128,10 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 			wants: wants{responseCode: http.StatusBadRequest,
 				response: ""},
 		},
-		{name: "POST test #3 (Empty object in body)",
+		{name: "POST test #3 (Object with empty url)",
 			args: args{request: &ShortenRequestDTO{""}},
-			wants: wants{responseCode: http.StatusCreated,
-				response: "short_URL"},
+			wants: wants{responseCode: http.StatusBadRequest,
+				response: ""},
 		},
 	}
 	for _, tt := range tests {
@@ -152,12 +151,65 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
-				defer func() {
+				/*defer func() {
 					err := res.Body.Close()
 					if err != nil {
 						log.Fatal(err)
 					}
-				}()
+				}()*/
+				defer res.Body.Close()
+				if err != nil {
+					t.Errorf("Can't read response body, %e", err)
+				}
+				var resultDTO ShortenResponseDTO
+				if err := json.Unmarshal(responseBody, &resultDTO); err != nil {
+					t.Error("Can't unmarshal dto", err)
+				}
+				assert.Equal(t, tt.wants.response, resultDTO.Result, "Expected body is %s, got %s", tt.wants.response, resultDTO.Result)
+			}
+		})
+	}
+}
+
+func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
+	type args struct {
+		requestBody string
+	}
+	type wants struct {
+		responseCode int
+		response     string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{name: "POST test #4 (Empty object)",
+			args: args{requestBody: "{}"},
+			wants: wants{responseCode: http.StatusBadRequest,
+				response: ""},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest("POST", "/api/shorten", strings.NewReader(tt.args.requestBody))
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(handler.PostAPIShortenHandler)
+			h.ServeHTTP(w, request)
+			res := w.Result()
+			fmt.Println(res)
+
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
+			if res.StatusCode == http.StatusCreated {
+				responseBody, err := io.ReadAll(res.Body)
+				/*defer func() {
+					err := res.Body.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()*/
+				defer res.Body.Close()
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
@@ -200,12 +252,13 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 			h := http.HandlerFunc(handler.GetMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			defer func() {
+			/*defer func() {
 				err := res.Body.Close()
 				if err != nil {
 					log.Fatal(err)
 				}
-			}()
+			}()*/
+			defer res.Body.Close()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			if res.StatusCode == tt.wants.responseCode {
@@ -252,12 +305,13 @@ func TestZipURLHandler_DefaultHandler(t *testing.T) {
 			h := http.HandlerFunc(handler.DefaultHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			defer func() {
+			/*defer func() {
 				err := res.Body.Close()
 				if err != nil {
 					log.Fatal(err)
 				}
-			}()
+			}()*/
+			defer res.Body.Close()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			responseBody, err := io.ReadAll(res.Body)
