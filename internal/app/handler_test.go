@@ -143,7 +143,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 			}
 			request := httptest.NewRequest("POST", "/api/shorten", bytes.NewReader(requestBody))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.PostApiShortenHandler)
+			h := http.HandlerFunc(handler.PostAPIShortenHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			fmt.Println(res)

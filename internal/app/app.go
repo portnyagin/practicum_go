@@ -27,7 +27,7 @@ func Start() {
 	router.Use(middleware.Recoverer)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/{id}", h.GetMethodHandler)
-		r.Post("/api/shorten", h.PostApiShortenHandler)
+		r.Post("/api/shorten", h.PostAPIShortenHandler)
 		r.Post("/", h.PostMethodHandler)
 		r.Put("/", h.DefaultHandler)
 		r.Patch("/", h.DefaultHandler)

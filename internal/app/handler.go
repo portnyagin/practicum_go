@@ -62,7 +62,7 @@ func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (z *ZipURLHandler) PostApiShortenHandler(w http.ResponseWriter, r *http.Request) {
+func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
 	defer func() {
 		err := r.Body.Close()
