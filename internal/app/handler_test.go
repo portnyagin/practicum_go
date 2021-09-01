@@ -44,6 +44,7 @@ func TestMain(m *testing.M) {
 	service.On("ZipURL", "").Return("", errors.New("URL is empty"))
 
 	service.On("ZipURLv2", "full_URL").Return("short_URL", nil)
+	service.On("ZipURLv2", "").Return("short_URL", errors.New("URL is empty"))
 
 	service.On("UnzipURL", "short_URL").Return("full_URL", nil)
 	service.On("UnzipURL", "xxx").Return("", errors.New("key not found"))
@@ -106,7 +107,7 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 /*********************/
 func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 	type args struct {
-		request ShortenRequestDTO
+		request *ShortenRequestDTO
 	}
 	type wants struct {
 		responseCode   int
@@ -119,14 +120,27 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 		wants wants
 	}{
 		{name: "POST test #1 (Positive)",
-			args: args{request: ShortenRequestDTO{"full_URL"}},
+			args: args{request: &ShortenRequestDTO{"full_URL"}},
+			wants: wants{responseCode: http.StatusCreated,
+				response: "short_URL"},
+		},
+		{name: "POST test #2 (Empty body)",
+			args: args{request: nil},
+			wants: wants{responseCode: http.StatusBadRequest,
+				response: ""},
+		},
+		{name: "POST test #3 (Empty object in body)",
+			args: args{request: &ShortenRequestDTO{""}},
 			wants: wants{responseCode: http.StatusCreated,
 				response: "short_URL"},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			requestBody, _ := json.Marshal(tt.args.request)
+			var requestBody []byte
+			if tt.args.request != nil {
+				requestBody, _ = json.Marshal(tt.args.request)
+			}
 			request := httptest.NewRequest("POST", "/api/shorten", bytes.NewReader(requestBody))
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(handler.PostApiShortenHandler)
