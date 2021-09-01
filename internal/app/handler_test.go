@@ -1,6 +1,8 @@
 package app
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
@@ -23,6 +25,11 @@ func (s *ServiceMock) ZipURL(url string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
+func (s *ServiceMock) ZipURLv2(url string) (*ShortenResponseDTO, error) {
+	args := s.Called(url)
+	return &ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
+}
+
 func (s *ServiceMock) UnzipURL(key string) (string, error) {
 	args := s.Called(key)
 	return args.String(0), args.Error(1)
@@ -35,6 +42,9 @@ func TestMain(m *testing.M) {
 	service = new(ServiceMock)
 	service.On("ZipURL", "full_URL").Return("short_URL", nil)
 	service.On("ZipURL", "").Return("", errors.New("URL is empty"))
+
+	service.On("ZipURLv2", "full_URL").Return("short_URL", nil)
+
 	service.On("UnzipURL", "short_URL").Return("full_URL", nil)
 	service.On("UnzipURL", "xxx").Return("", errors.New("key not found"))
 
@@ -88,6 +98,60 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 				}
 				assert.Equal(t, tt.wants.resultResponse, string(responseBody), "Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
 
+			}
+		})
+	}
+}
+
+/*********************/
+func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
+	type args struct {
+		request ShortenRequestDTO
+	}
+	type wants struct {
+		responseCode   int
+		resultResponse string
+		response       string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{name: "POST test #1 (Positive)",
+			args: args{request: ShortenRequestDTO{"full_URL"}},
+			wants: wants{responseCode: http.StatusCreated,
+				response: "short_URL"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requestBody, _ := json.Marshal(tt.args.request)
+			request := httptest.NewRequest("POST", "/api/shorten", bytes.NewReader(requestBody))
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(handler.PostApiShortenHandler)
+			h.ServeHTTP(w, request)
+			res := w.Result()
+			fmt.Println(res)
+
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
+			if res.StatusCode == http.StatusCreated {
+				responseBody, err := io.ReadAll(res.Body)
+				defer func() {
+					err := res.Body.Close()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}()
+				if err != nil {
+					t.Errorf("Can't read response body, %e", err)
+				}
+				var resultDTO ShortenResponseDTO
+				if err := json.Unmarshal(responseBody, &resultDTO); err != nil {
+					t.Error("Can't unmarshal dto", err)
+				}
+				assert.Equal(t, tt.wants.response, resultDTO.Result, "Expected body is %s, got %s", tt.wants.response, resultDTO.Result)
 			}
 		})
 	}

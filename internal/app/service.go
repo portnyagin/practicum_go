@@ -40,3 +40,13 @@ func (s *ZipService) UnzipURL(key string) (string, error) {
 	res, err := s.repository.Find(key)
 	return res, err
 }
+
+func (s *ZipService) ZipURLv2(url string) (*ShortenResponseDTO, error) {
+	var res ShortenResponseDTO
+	resStr, err := s.ZipURL(url)
+	if err != nil {
+		return nil, err
+	}
+	res.Result = resStr
+	return &res, nil
+}

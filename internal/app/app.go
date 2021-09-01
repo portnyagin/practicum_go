@@ -27,6 +27,7 @@ func Start() {
 	router.Use(middleware.Recoverer)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/{id}", h.GetMethodHandler)
+		r.Post("/api/shorten", h.PostApiShortenHandler)
 		r.Post("/", h.PostMethodHandler)
 		r.Put("/", h.DefaultHandler)
 		r.Patch("/", h.DefaultHandler)
@@ -40,5 +41,4 @@ func Start() {
 		fmt.Println("can't start service")
 		fmt.Println(err)
 	}
-
 }
