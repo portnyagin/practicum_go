@@ -189,6 +189,11 @@ func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
 			wants: wants{responseCode: http.StatusBadRequest,
 				response: ""},
 		},
+		{name: "POST test #4 (Empty object)",
+			args: args{requestBody: ""},
+			wants: wants{responseCode: http.StatusBadRequest,
+				response: ""},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
