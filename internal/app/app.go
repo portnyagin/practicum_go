@@ -24,6 +24,9 @@ func Start() {
 	if err := env.Parse(&config); err != nil {
 		fmt.Println("can't load service config", err)
 	}
+	if err := config.validate(); err != nil {
+		fmt.Println("can't validate service config", err)
+	}
 	repo := NewBaseRepository()
 	service := NewZipService(repo)
 	h := NewZipURLHandler(service)

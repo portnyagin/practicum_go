@@ -311,13 +311,14 @@ func TestZipURLHandler_DefaultHandler(t *testing.T) {
 			h := http.HandlerFunc(handler.DefaultHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
+			defer res.Body.Close()
 			/*defer func() {
 				err := res.Body.Close()
 				if err != nil {
 					log.Fatal(err)
 				}
 			}()*/
-			defer res.Body.Close()
+
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
 			responseBody, err := io.ReadAll(res.Body)
