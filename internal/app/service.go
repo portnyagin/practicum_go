@@ -27,13 +27,14 @@ func NewZipService(repo Repository) *ZipService {
 }
 
 func (s *ZipService) ZipURL(url string) (string, error) {
-	const baseURL string = "http://localhost:8080/"
+	//const baseURL string = "http://localhost:8080/"
+
 	if url == "" {
 		return "", errors.New("URL is empty")
 	}
 	key := s.encode(url)
 	s.repository.Save(key, url)
-	return baseURL + key, nil
+	return config.Base_URL + key, nil
 }
 
 func (s *ZipService) UnzipURL(key string) (string, error) {

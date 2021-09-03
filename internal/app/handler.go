@@ -22,6 +22,14 @@ func NewZipURLHandler(service Service) *ZipURLHandler {
 	return &h
 }
 
+func (z *ZipURLHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, err := w.Write([]byte("Hello"))
+	if err != nil {
+		panic("Can't write response")
+	}
+}
+
 func (z *ZipURLHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 	_, err := w.Write([]byte("Unsupported request type"))

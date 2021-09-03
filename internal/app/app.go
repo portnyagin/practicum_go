@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"net/http"
@@ -16,8 +17,13 @@ import (
 Нужно учесть некорректные запросы и возвращать для них ответ с кодом 400.
 
 */
+var config AppConfig
 
 func Start() {
+	config = AppConfig{}
+	if err := env.Parse(&config); err != nil {
+		fmt.Println("can't load service config", err)
+	}
 	repo := NewBaseRepository()
 	service := NewZipService(repo)
 	h := NewZipURLHandler(service)
@@ -26,6 +32,7 @@ func Start() {
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 	router.Route("/", func(r chi.Router) {
+		r.Get("/", h.HelloHandler)
 		r.Get("/{id}", h.GetMethodHandler)
 		r.Post("/api/shorten", h.PostAPIShortenHandler)
 		r.Post("/", h.PostMethodHandler)
@@ -36,7 +43,7 @@ func Start() {
 
 	// запуск сервера с адресом localhost, порт 8080
 
-	err := http.ListenAndServe(":8080", router)
+	err := http.ListenAndServe(config.Server_address, router)
 	if err != nil {
 		fmt.Println("can't start service")
 		fmt.Println(err)
