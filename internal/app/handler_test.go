@@ -88,12 +88,13 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
-				defer func() {
+				/*defer func() {
 					err := res.Body.Close()
 					if err != nil {
 						log.Fatal(err)
 					}
-				}()
+				}()*/
+				defer res.Body.Close()
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}

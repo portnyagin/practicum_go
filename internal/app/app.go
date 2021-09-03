@@ -43,7 +43,7 @@ func Start() {
 
 	// запуск сервера с адресом localhost, порт 8080
 
-	err := http.ListenAndServe(config.Server_address, router)
+	err := http.ListenAndServe(config.ServerAddress, router)
 	if err != nil {
 		fmt.Println("can't start service")
 		fmt.Println(err)

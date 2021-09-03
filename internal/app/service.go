@@ -34,7 +34,7 @@ func (s *ZipService) ZipURL(url string) (string, error) {
 	}
 	key := s.encode(url)
 	s.repository.Save(key, url)
-	return config.Base_URL + key, nil
+	return config.BaseUrl + key, nil
 }
 
 func (s *ZipService) UnzipURL(key string) (string, error) {
