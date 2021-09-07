@@ -6,9 +6,11 @@ import (
 	"io"
 	"os"
 	"path"
+	"sync"
 )
 
 type BaseRepository struct {
+	sync.Mutex
 	store   map[string]string
 	config  *AppConfig
 	f       *os.File
@@ -127,6 +129,8 @@ func (r *BaseRepository) Find(key string) (string, error) {
 // TODO: Нужен хороший тест
 func (r *BaseRepository) Save(key string, value string) error {
 	var err error
+	r.Lock()
+	defer r.Unlock()
 	if val, ok := r.store[key]; ok {
 		if val != value {
 			// change value
