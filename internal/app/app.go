@@ -23,11 +23,17 @@ func Start() {
 	config = AppConfig{}
 	if err := env.Parse(&config); err != nil {
 		fmt.Println("can't load service config", err)
+		return
 	}
 	if err := config.validate(); err != nil {
 		fmt.Println("can't validate service config", err)
+		return
 	}
-	repo := NewBaseRepository()
+	repo, err := NewBaseRepository(&config)
+	if err != nil {
+		fmt.Println("can't init repository", err)
+		return
+	}
 	service := NewZipService(repo)
 	h := NewZipURLHandler(service)
 	router := chi.NewRouter()
@@ -46,7 +52,7 @@ func Start() {
 
 	// запуск сервера с адресом localhost, порт 8080
 
-	err := http.ListenAndServe(config.ServerAddress, router)
+	err = http.ListenAndServe(config.ServerAddress, router)
 	if err != nil {
 		fmt.Println("can't start service")
 		fmt.Println(err)
