@@ -50,17 +50,17 @@ func NewBaseRepository(cfg *AppConfig) (*BaseRepository, error) {
 			return nil, err
 		}
 	}
-	f, err := os.OpenFile(r.config.FileStorage, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 755)
+	f, err := os.OpenFile(r.config.FileStorage, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
+	if err != nil {
+		return nil, err
+	}
 	r.encoder = gob.NewEncoder(f)
 	err = r.flush()
 	if err != nil {
 		return nil, err
 	}
 	r.f = f
-	err = os.Remove(tmpPath)
-	if err != nil {
-		//ignore
-	}
+	os.Remove(tmpPath)
 	return &r, nil
 }
 
@@ -87,15 +87,15 @@ func (r *BaseRepository) copyStoreToTmp() (string, error) {
 }
 
 func (r *BaseRepository) init(filePath string) error {
-	f, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 755)
-	defer f.Close()
+	f, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0755)
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	gobDecoder := gob.NewDecoder(f)
-	var tmp *StoreRecord
-	tmp = new(StoreRecord)
-	for true {
+
+	tmp := new(StoreRecord)
+	for {
 		err := gobDecoder.Decode(tmp)
 		if errors.Is(err, io.EOF) {
 			break
