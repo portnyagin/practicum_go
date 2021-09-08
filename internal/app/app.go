@@ -29,9 +29,9 @@ func init() {
 		return
 	}
 
-	pflag.StringVar(&config.ServerAddress, "a", config.ServerAddress, "Http-server address")
-	pflag.StringVar(&config.BaseURL, "b", config.BaseURL, "Base URL")
-	pflag.StringVar(&config.FileStorage, "f", config.FileStorage, "File storage path")
+	pflag.StringVarP(&config.ServerAddress, "a", "a", config.ServerAddress, "Http-server address")
+	pflag.StringVarP(&config.BaseURL, "b", "b", config.BaseURL, "Base URL")
+	pflag.StringVarP(&config.FileStorage, "f", "f", config.FileStorage, "File storage path")
 	pflag.Parse()
 
 	if config.BaseURL == "" || config.FileStorage == "" || config.ServerAddress == "" {
