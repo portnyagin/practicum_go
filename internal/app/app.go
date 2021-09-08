@@ -5,7 +5,9 @@ import (
 	"github.com/caarlos0/env/v6"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/spf13/pflag"
 	"net/http"
+	"os"
 )
 
 /*
@@ -19,16 +21,28 @@ import (
 */
 var config AppConfig
 
-func Start() {
-	config = AppConfig{}
-	if err := env.Parse(&config); err != nil {
-		fmt.Println("can't load service config", err)
-		return
+func init() {
+	fmt.Println(os.Args)
+	var cfg AppConfig
+	pflag.StringVar(&cfg.ServerAddress, "a", "", "Http-server address")
+	pflag.StringVar(&cfg.BaseURL, "b", "", "Base URL")
+	pflag.StringVar(&cfg.FileStorage, "f", "", "File storage path")
+	pflag.Parse()
+
+	if config.BaseURL == "" || config.FileStorage == "" || config.ServerAddress == "" {
+		if err := env.Parse(&config); err != nil {
+			fmt.Println("can't load service config", err)
+			return
+		}
 	}
 	if err := config.validate(); err != nil {
 		fmt.Println("can't validate service config", err)
 		return
 	}
+
+}
+
+func Start() {
 	repo, err := NewBaseRepository(&config)
 	if err != nil {
 		fmt.Println("can't init repository", err)
