@@ -23,7 +23,7 @@ func NewZipURLHandler(service Service) *ZipURLHandler {
 }
 
 func (z *ZipURLHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusAccepted)
 	_, err := w.Write([]byte("Hello"))
 	if err != nil {
 		panic("Can't write response")
