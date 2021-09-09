@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -293,14 +292,8 @@ func TestZipURLHandler_DefaultHandler(t *testing.T) {
 			defer res.Body.Close()
 
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
-
 			responseBody, err := io.ReadAll(res.Body)
-			defer func() {
-				err := res.Body.Close()
-				if err != nil {
-					log.Fatal(err)
-				}
-			}()
+
 			if err != nil {
 				t.Errorf("Can't read response body, %e", err)
 			}
