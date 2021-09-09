@@ -27,7 +27,6 @@ func NewZipService(repo Repository) *ZipService {
 }
 
 func (s *ZipService) ZipURL(url string) (string, error) {
-	//const baseURL string = "http://localhost:8080/"
 	if url == "" {
 		return "", errors.New("URL is empty")
 	}

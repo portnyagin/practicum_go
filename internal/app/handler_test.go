@@ -88,12 +88,7 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
-				/*defer func() {
-					err := res.Body.Close()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}()*/
+
 				defer res.Body.Close()
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
@@ -105,7 +100,6 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 	}
 }
 
-/*********************/
 func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 	type args struct {
 		request *ShortenRequestDTO
@@ -152,12 +146,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
-				/*defer func() {
-					err := res.Body.Close()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}()*/
+
 				defer res.Body.Close()
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
@@ -209,12 +198,7 @@ func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
 
 			if res.StatusCode == http.StatusCreated {
 				responseBody, err := io.ReadAll(res.Body)
-				/*defer func() {
-					err := res.Body.Close()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}()*/
+
 				defer res.Body.Close()
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
@@ -258,12 +242,7 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 			h := http.HandlerFunc(handler.GetMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
-			/*defer func() {
-				err := res.Body.Close()
-				if err != nil {
-					log.Fatal(err)
-				}
-			}()*/
+
 			defer res.Body.Close()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
@@ -312,12 +291,6 @@ func TestZipURLHandler_DefaultHandler(t *testing.T) {
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			defer res.Body.Close()
-			/*defer func() {
-				err := res.Body.Close()
-				if err != nil {
-					log.Fatal(err)
-				}
-			}()*/
 
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 

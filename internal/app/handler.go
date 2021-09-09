@@ -38,7 +38,7 @@ func (z *ZipURLHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (z *ZipURLHandler) writebadRequest(w http.ResponseWriter) {
+func (z *ZipURLHandler) writeBadRequest(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusBadRequest)
 	_, err := w.Write([]byte("Bad request"))
 	if err != nil {
@@ -48,19 +48,14 @@ func (z *ZipURLHandler) writebadRequest(w http.ResponseWriter) {
 
 func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
-	/*defer func() {
-		err := r.Body.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()*/
+
 	defer r.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if string(b) == "" {
-		z.writebadRequest(w)
+		z.writeBadRequest(w)
 		return
 	} else {
 		res, _ := z.service.ZipURL(string(b))
@@ -75,29 +70,23 @@ func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request
 
 func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := io.ReadAll(r.Body)
-	/*defer func() {
-		err := r.Body.Close()
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()*/
 	defer r.Body.Close()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if string(b) == "" {
-		z.writebadRequest(w)
+		z.writeBadRequest(w)
 		return
 	} else {
 		var req ShortenRequestDTO
 		if err := json.Unmarshal(b, &req); err != nil {
-			z.writebadRequest(w)
+			z.writeBadRequest(w)
 			return
 		}
 		resultDTO, err := z.service.ZipURLv2(req.URL)
 		if err != nil {
-			z.writebadRequest(w)
+			z.writeBadRequest(w)
 			return
 		}
 		responseBody, err := json.Marshal(resultDTO)
@@ -115,13 +104,13 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 
 func (z *ZipURLHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	if r.RequestURI == "" || r.RequestURI[1:] == "" {
-		w.WriteHeader(http.StatusBadRequest)
+		z.writeBadRequest(w)
 		return
 	} else {
 		key := r.RequestURI[1:]
 		res, err := z.service.UnzipURL(key)
 		if err != nil {
-			z.writebadRequest(w)
+			z.writeBadRequest(w)
 			return
 		}
 		w.Header().Set("Location", res)
