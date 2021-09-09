@@ -93,6 +93,7 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 		if err != nil {
 			panic("Can't serialize response")
 		}
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write(responseBody)
 		if err != nil {
