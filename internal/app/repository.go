@@ -11,10 +11,10 @@ import (
 
 type BaseRepository struct {
 	sync.Mutex
-	store   map[string]string
-	config  *AppConfig
-	f       *os.File
-	encoder *gob.Encoder
+	store          map[string]string
+	cfgFileStorage string
+	f              *os.File
+	encoder        *gob.Encoder
 }
 
 type StoreRecord struct {
@@ -22,13 +22,13 @@ type StoreRecord struct {
 	Value string
 }
 
-func NewBaseRepository(cfg *AppConfig) (*BaseRepository, error) {
+func NewBaseRepository(fileStorage string) (*BaseRepository, error) {
 	var r BaseRepository
 	var tmpPath string
-	r.config = cfg
+	r.cfgFileStorage = fileStorage
 	r.store = make(map[string]string)
 
-	err := os.MkdirAll(path.Dir(r.config.FileStorage), 0755)
+	err := os.MkdirAll(path.Dir(r.cfgFileStorage), 0755)
 	if err != nil {
 		return nil, err
 	}
@@ -38,9 +38,8 @@ func NewBaseRepository(cfg *AppConfig) (*BaseRepository, error) {
 		tmpFile -> memory
 		memory -> store
 	*/
-	if _, err := os.Stat(r.config.FileStorage); !os.IsNotExist(err) {
+	if _, err := os.Stat(r.cfgFileStorage); !os.IsNotExist(err) {
 		// path/to/whatever does not exist
-
 		tmpPath, err = r.copyStoreToTmp()
 		if err != nil {
 			return nil, err
@@ -50,7 +49,7 @@ func NewBaseRepository(cfg *AppConfig) (*BaseRepository, error) {
 			return nil, err
 		}
 	}
-	f, err := os.OpenFile(r.config.FileStorage, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
+	f, err := os.OpenFile(r.cfgFileStorage, os.O_WRONLY|os.O_TRUNC|os.O_CREATE, 0755)
 	if err != nil {
 		return nil, err
 	}
@@ -65,13 +64,13 @@ func NewBaseRepository(cfg *AppConfig) (*BaseRepository, error) {
 }
 
 func (r *BaseRepository) copyStoreToTmp() (string, error) {
-	in, err := os.Open(r.config.FileStorage)
+	in, err := os.Open(r.cfgFileStorage)
 	if err != nil {
 		return "", err
 	}
 	defer in.Close()
 
-	out, err := os.CreateTemp(path.Dir(r.config.FileStorage), "*.tmp")
+	out, err := os.CreateTemp(path.Dir(r.cfgFileStorage), "*.tmp")
 	dstPath := out.Name()
 	//out, err := os.Create(dst)
 	if err != nil {
