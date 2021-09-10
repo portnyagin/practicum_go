@@ -15,7 +15,7 @@ type AppConfig struct {
 
 func (config *AppConfig) Init() error {
 	fmt.Println(os.Args)
-	if err := env.Parse(&config); err != nil {
+	if err := env.Parse(config); err != nil {
 		fmt.Println("can't load service config", err)
 		return err
 	}
