@@ -64,7 +64,7 @@ func TestZipService_ZipURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewZipService(repo)
+			s := NewZipService(repo, "http://localhost:8080/")
 			s.encode = mockEncode
 			res, err := s.ZipURL(tt.url)
 			if (err != nil) != tt.wantErr {
@@ -102,9 +102,10 @@ func TestZipService_UnzipURL(t *testing.T) {
 			wantErr: false,
 		},
 	}
+
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewZipService(repo)
+			s := NewZipService(repo, "http://localhost:8080/")
 
 			got, err := s.UnzipURL(tt.key)
 			if (err != nil) != tt.wantErr {
