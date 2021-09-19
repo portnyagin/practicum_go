@@ -1,8 +1,9 @@
-package customMidleware
+package custommiddleware
 
 import (
 	"compress/gzip"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -24,12 +25,15 @@ func Compress(next http.Handler) http.Handler {
 			return
 		}
 		gz, err := gzip.NewWriterLevel(w, gzip.BestSpeed)
-		defer gz.Close()
 		if err != nil {
 			_, err = io.WriteString(w, err.Error())
+			if err != nil {
+				log.Fatal(err)
+			}
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
+		defer gz.Close()
 
 		w.Header().Set("Content-Encoding", "gzip")
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)

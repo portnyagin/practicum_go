@@ -5,7 +5,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	config2 "github.com/portnyagin/practicum_go/internal/app/config"
-	"github.com/portnyagin/practicum_go/internal/app/customMidleware"
+	"github.com/portnyagin/practicum_go/internal/app/custommiddleware"
 	"log"
 	"net/http"
 )
@@ -36,7 +36,7 @@ func Start() {
 	router.Use(middleware.CleanPath)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
-	router.Use(customMidleware.Compress)
+	router.Use(custommiddleware.Compress)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", h.HelloHandler)
 		r.Get("/{id}", h.GetMethodHandler)

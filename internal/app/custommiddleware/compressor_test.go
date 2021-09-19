@@ -1,4 +1,4 @@
-package customMidleware
+package custommiddleware
 
 import (
 	"bytes"
@@ -89,7 +89,7 @@ func TestCompressPOST(t *testing.T) {
 		},
 		{name: "POST compress test #3 ",
 			args:  args{acceptEncoding: "", contentEncoding: "gzip", method: "POST", pattern: "/api/shorten", body: "{\"url\":\"full_URL\"}"},
-			wants: wants{responseCode: http.StatusOK, contentType: "application/json", contentEncoding: "gzip"},
+			wants: wants{responseCode: http.StatusOK, contentType: "application/json", contentEncoding: ""},
 		},
 	}
 	for _, tt := range tests {
@@ -101,6 +101,9 @@ func TestCompressPOST(t *testing.T) {
 				panic(err)
 			}
 			err = compressor.Close()
+			if err != nil {
+				panic(err)
+			}
 			request := httptest.NewRequest(tt.args.method, tt.args.pattern, &zp)
 			if tt.args.acceptEncoding != "" {
 				request.Header.Set("Accept-Encoding", tt.args.acceptEncoding)
