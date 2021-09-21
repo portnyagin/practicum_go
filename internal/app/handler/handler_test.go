@@ -1,20 +1,18 @@
-package app
+package handler
 
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 )
 
+/*
 type ServiceMock struct {
 	mock.Mock
 }
@@ -24,16 +22,16 @@ func (s *ServiceMock) ZipURL(url string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (s *ServiceMock) ZipURLv2(url string) (*ShortenResponseDTO, error) {
+func (s *ServiceMock) ZipURLv2(url string) (*app.ShortenResponseDTO, error) {
 	args := s.Called(url)
-	return &ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
+	return &app.ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
 }
 
 func (s *ServiceMock) UnzipURL(key string) (string, error) {
 	args := s.Called(key)
 	return args.String(0), args.Error(1)
-}
-
+}*/
+/*
 var service *ServiceMock
 var handler *ZipURLHandler
 
@@ -48,9 +46,9 @@ func TestMain(m *testing.M) {
 	service.On("UnzipURL", "short_URL").Return("full_URL", nil)
 	service.On("UnzipURL", "xxx").Return("", errors.New("key not found"))
 
-	handler = NewZipURLHandler(service)
 	os.Exit(m.Run())
 }
+*/
 
 func TestZipURLHandler_postMethodHandler(t *testing.T) {
 	type args struct {

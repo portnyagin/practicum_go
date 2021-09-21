@@ -1,28 +1,10 @@
-package app
+package service
 
 import (
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"net/url"
 	"testing"
 )
-
-type RepositoryMock struct {
-	mock.Mock
-}
-
-func (r *RepositoryMock) Find(key string) (string, error) {
-	args := r.Called(key)
-	return args.String(0), nil
-}
-
-func (r *RepositoryMock) Save(key string, value string) error {
-	return nil
-}
-
-func mockEncode(str string) string {
-	return str
-}
 
 func TestZipService_ZipURL(t *testing.T) {
 	repo := new(RepositoryMock)

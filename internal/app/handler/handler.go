@@ -1,62 +1,30 @@
-package app
+package handler
 
 import (
-	"bytes"
-	"compress/gzip"
 	"encoding/json"
-	"io"
 	"net/http"
-	"strings"
 )
 
 type Service interface {
 	ZipURL(url string) (string, error)
 	UnzipURL(key string) (string, error)
-	ZipURLv2(url string) (*ShortenResponseDTO, error)
+	//GetURLsByUser (userID string) ([]srv.RepoRecord, error)
 }
 
+/*
+type CompressService interface {
+	Compress(data []byte) ([]byte, error)
+}*/
+
 type ZipURLHandler struct {
-	service Service
+	service       Service
+	cryptoService CryptoService
 }
 
 func NewZipURLHandler(service Service) *ZipURLHandler {
 	var h ZipURLHandler
 	h.service = service
 	return &h
-}
-
-func unZip(data []byte) ([]byte, error) {
-	var res bytes.Buffer // тут будет результат
-	r, err := gzip.NewReader(bytes.NewReader(data))
-	if err != nil {
-		return nil, err
-	}
-	_, err = res.ReadFrom(r)
-	if err != nil {
-		return nil, err
-	}
-
-	err = r.Close()
-	if err != nil {
-		return nil, err
-	}
-	return res.Bytes(), nil
-}
-
-func getRequestBody(r *http.Request) ([]byte, error) {
-	b, err := io.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		return nil, err
-	}
-	if strings.Contains(r.Header.Get("Content-Encoding"), "gzip") {
-		unzipBody, err := unZip(b)
-		if err != nil {
-			panic(err)
-		}
-		return unzipBody, nil
-	}
-	return b, nil
 }
 
 func (z *ZipURLHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
@@ -75,14 +43,6 @@ func (z *ZipURLHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (z *ZipURLHandler) writeBadRequest(w http.ResponseWriter) {
-	w.WriteHeader(http.StatusBadRequest)
-	_, err := w.Write([]byte("Bad request"))
-	if err != nil {
-		panic("Can't write response")
-	}
-}
-
 func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := getRequestBody(r)
 	if err != nil {
@@ -90,7 +50,7 @@ func (z *ZipURLHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	if string(b) == "" {
-		z.writeBadRequest(w)
+		writeBadRequest(w)
 		return
 	} else {
 		res, _ := z.service.ZipURL(string(b))
@@ -110,19 +70,21 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 	if string(b) == "" {
-		z.writeBadRequest(w)
+		writeBadRequest(w)
 		return
 	} else {
 		var req ShortenRequestDTO
 		if err := json.Unmarshal(b, &req); err != nil {
-			z.writeBadRequest(w)
+			writeBadRequest(w)
 			return
 		}
-		resultDTO, err := z.service.ZipURLv2(req.URL)
+		res, err := z.service.ZipURL(req.URL)
 		if err != nil {
-			z.writeBadRequest(w)
+			writeBadRequest(w)
 			return
 		}
+		resultDTO := ShortenResponseDTO{res}
+
 		responseBody, err := json.Marshal(resultDTO)
 		if err != nil {
 			panic("Can't serialize response")
@@ -139,13 +101,13 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 
 func (z *ZipURLHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	if r.RequestURI == "" || r.RequestURI[1:] == "" {
-		z.writeBadRequest(w)
+		writeBadRequest(w)
 		return
 	} else {
 		key := r.RequestURI[1:]
 		res, err := z.service.UnzipURL(key)
 		if err != nil {
-			z.writeBadRequest(w)
+			writeBadRequest(w)
 			return
 		}
 		w.Header().Set("Location", res)

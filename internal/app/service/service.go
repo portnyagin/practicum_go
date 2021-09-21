@@ -1,8 +1,9 @@
-package app
+package service
 
 import (
 	"encoding/base64"
 	"errors"
+	//"github.com/portnyagin/practicum_go/internal/app/handler"
 )
 
 type EncodeFunc func(str string) string
@@ -13,9 +14,12 @@ type ZipService struct {
 	baseURL    string
 }
 
+type RepoRecord = string
+
 type Repository interface {
-	Find(key string) (string, error)
+	Find(key string) (RepoRecord, error)
 	Save(key string, value string) error
+	FindByUser(key string) ([]RepoRecord, error)
 }
 
 func NewZipService(repo Repository, baseURL string) *ZipService {
@@ -45,12 +49,12 @@ func (s *ZipService) UnzipURL(key string) (string, error) {
 	return res, err
 }
 
-func (s *ZipService) ZipURLv2(url string) (*ShortenResponseDTO, error) {
-	var res ShortenResponseDTO
-	resStr, err := s.ZipURL(url)
+/*
+func (s *ZipService) GetURLsByUser (userID string) ([]RepoRecord, error) {
+	// TODO: Проверить куку
+	res, err := s.repository.FindByUser(userID)
 	if err != nil {
 		return nil, err
 	}
-	res.Result = resStr
-	return &res, nil
-}
+	return res, nil
+}*/

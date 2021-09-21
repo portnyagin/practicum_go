@@ -5,7 +5,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	config2 "github.com/portnyagin/practicum_go/internal/app/config"
-	"github.com/portnyagin/practicum_go/internal/app/custommiddleware"
+	"github.com/portnyagin/practicum_go/internal/app/custom_middleware"
+	"github.com/portnyagin/practicum_go/internal/app/handler"
+	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
 	"net/http"
 )
@@ -30,16 +32,21 @@ func Start() {
 		fmt.Println("can't init repository", err)
 		return
 	}
-	service := NewZipService(repo, config.BaseURL)
-	h := NewZipURLHandler(service)
+	service := service2.NewZipService(repo, config.BaseURL)
+	cs, _ := service2.NewCryptoService()
+	userService := service2.NewUserService(repo)
+	//zip, _ := service2.NewCompressService()
+	h := handler.NewZipURLHandler(service)
+	uh := handler.NewUserHandler(userService, cs)
 	router := chi.NewRouter()
 	router.Use(middleware.CleanPath)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
-	router.Use(custommiddleware.Compress)
+	router.Use(custom_middleware.Compress)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", h.HelloHandler)
 		r.Get("/{id}", h.GetMethodHandler)
+		r.Get("/user/urls", uh.GetUserURLsHandler)
 		r.Post("/api/shorten", h.PostAPIShortenHandler)
 		r.Post("/", h.PostMethodHandler)
 		r.Put("/", h.DefaultHandler)

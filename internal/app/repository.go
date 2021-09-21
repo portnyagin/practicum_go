@@ -3,6 +3,7 @@ package app
 import (
 	"encoding/gob"
 	"errors"
+	"github.com/portnyagin/practicum_go/internal/app/service"
 	"io"
 	"os"
 	"path"
@@ -117,12 +118,17 @@ func (r *BaseRepository) flush() error {
 	return nil
 }
 
-func (r *BaseRepository) Find(key string) (string, error) {
+func (r *BaseRepository) Find(key string) (service.RepoRecord, error) {
 	if val, ok := r.store[key]; ok {
 		return val, nil
 	} else {
 		return "", errors.New("can't find value")
 	}
+}
+
+func (r *BaseRepository) FindByUser(key string) ([]service.RepoRecord, error) {
+	// TODO: implenent!
+	return nil, nil
 }
 
 // TODO: Нужен хороший тест
