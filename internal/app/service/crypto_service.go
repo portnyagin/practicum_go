@@ -49,6 +49,8 @@ func (s *CryptoServiceImpl) generateUserID() (string, error) {
 	return uid, nil
 }
 
+// function for user_id and encrypted token generation
+// returned values:  user_id, token, error
 func (s *CryptoServiceImpl) GetNewUserToken() (string, string, error) {
 	user, err := s.generateUserID()
 	if err != nil {
@@ -62,12 +64,17 @@ func (s *CryptoServiceImpl) GetNewUserToken() (string, string, error) {
 
 }
 
-func (s *CryptoServiceImpl) Validate(token string) bool {
-	//TODO:
-	return false
+// Function try to encrypt given token
+// Return true and decrypted user_id. Else - false
+func (s *CryptoServiceImpl) Validate(token string) (bool, string) {
+	res, err := s.decrypt([]byte(token))
+	if err != nil {
+		return false, ""
+	}
+	return true, res
 }
 
-func (s *CryptoServiceImpl) Decrypt(src []byte) (string, error) {
+func (s *CryptoServiceImpl) decrypt(src []byte) (string, error) {
 	res, err := s.aesgcm.Open(nil, s.nonce, src, nil) // расшифровываем
 	if err != nil {
 		return "", err

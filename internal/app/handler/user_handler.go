@@ -1,15 +1,13 @@
 package handler
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 )
 
 type CryptoService interface {
-	Validate(token string) bool
-
-	// function for user_id and encrypted token generation
-	// returned values:  user_id, token, error
+	Validate(token string) (bool, string)
 	GetNewUserToken() (string, string, error)
 }
 
@@ -31,7 +29,7 @@ func NewUserHandler(service UserService, cs CryptoService) *UserHandler {
 
 func (z *UserHandler) bakeCookie() (*http.Cookie, error) {
 	var c http.Cookie
-	// TODO. user
+	// TODO. user\
 	_, token, err := z.cryptoService.GetNewUserToken()
 	if err != nil {
 		return nil, err
@@ -41,23 +39,31 @@ func (z *UserHandler) bakeCookie() (*http.Cookie, error) {
 	return &c, nil
 }
 
-func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request) {
-	// получить куку
+func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (*http.Cookie, error) {
 	token, err := r.Cookie("token")
-	if errors.Is(err, http.ErrNoCookie) {
+	ok, _ := z.cryptoService.Validate(token.Value)
+	if errors.Is(err, http.ErrNoCookie) || !ok {
 		newToken, err := z.bakeCookie()
 		if err != nil {
-
+			return nil, err
 		}
 		http.SetCookie(w, newToken)
+		token = newToken
+	} else if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return nil, err
 	}
+	return token, nil
+}
+
+func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request) {
+	token, err := z.getTokenCookie(w, r)
 	if err != nil {
-		w.WriteHeader(http.StatusForbidden)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	if z.cryptoService.Validate(token.Value) {
-		// TODO.
-		user_id := "key"
+
+	if ok, user_id := z.cryptoService.Validate(token.Value); ok {
 		res, err := z.service.GetURLsByUser(user_id)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -66,12 +72,22 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		if len(res) == 0 {
 			w.WriteHeader(http.StatusNoContent)
 			return
+		} else {
+			// записать ответ
+			responseBody, err := json.Marshal(resultDTO)
+			if err != nil {
+				panic("Can't serialize response")
+			}
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusCreated)
+			_, err = w.Write(responseBody)
+			if err != nil {
+				panic("Can't write response")
+			}
 		}
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-
-	// проверить
-	// Получить урлы
-	// Если массив пустой, то отдаем 204
-
 	return
 }

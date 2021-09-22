@@ -7,6 +7,7 @@ import (
 	config2 "github.com/portnyagin/practicum_go/internal/app/config"
 	"github.com/portnyagin/practicum_go/internal/app/custom_middleware"
 	"github.com/portnyagin/practicum_go/internal/app/handler"
+	"github.com/portnyagin/practicum_go/internal/app/repository"
 	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
 	"net/http"
@@ -27,7 +28,7 @@ func Start() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	repo, err := NewBaseRepository(config.FileStorage)
+	repo, err := repository.NewBaseRepository(config.FileStorage)
 	if err != nil {
 		fmt.Println("can't init repository", err)
 		return

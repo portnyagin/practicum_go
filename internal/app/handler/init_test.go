@@ -2,7 +2,6 @@ package handler
 
 import (
 	"errors"
-	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"os"
 	"testing"
 )
@@ -28,8 +27,11 @@ func TestMain(m *testing.M) {
 	//GetURLsByUser (userID string) ([]string, error)
 	handler = NewZipURLHandler(service)
 
-	// TODO: заменить на mock
-	cryptoService, _ := service2.NewCryptoService()
+	cryptoService := new(CryptoServiceMock)
+	cryptoService.On("Validate").Return(true, "user_id")
+
+	cryptoService.On("GetNewUserToken").Return("user_id", "valid_user_Token", nil)
+
 	userHandler = NewUserHandler(userService, cryptoService)
 	os.Exit(m.Run())
 }

@@ -48,13 +48,3 @@ func (s *ZipService) UnzipURL(key string) (string, error) {
 	res, err := s.repository.Find(key)
 	return res, err
 }
-
-/*
-func (s *ZipService) GetURLsByUser (userID string) ([]RepoRecord, error) {
-	// TODO: Проверить куку
-	res, err := s.repository.FindByUser(userID)
-	if err != nil {
-		return nil, err
-	}
-	return res, nil
-}*/

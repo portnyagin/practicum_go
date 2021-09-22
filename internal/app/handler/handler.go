@@ -8,13 +8,7 @@ import (
 type Service interface {
 	ZipURL(url string) (string, error)
 	UnzipURL(key string) (string, error)
-	//GetURLsByUser (userID string) ([]srv.RepoRecord, error)
 }
-
-/*
-type CompressService interface {
-	Compress(data []byte) ([]byte, error)
-}*/
 
 type ZipURLHandler struct {
 	service       Service

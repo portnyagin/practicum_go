@@ -12,44 +12,6 @@ import (
 	"testing"
 )
 
-/*
-type ServiceMock struct {
-	mock.Mock
-}
-
-func (s *ServiceMock) ZipURL(url string) (string, error) {
-	args := s.Called(url)
-	return args.String(0), args.Error(1)
-}
-
-func (s *ServiceMock) ZipURLv2(url string) (*app.ShortenResponseDTO, error) {
-	args := s.Called(url)
-	return &app.ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
-}
-
-func (s *ServiceMock) UnzipURL(key string) (string, error) {
-	args := s.Called(key)
-	return args.String(0), args.Error(1)
-}*/
-/*
-var service *ServiceMock
-var handler *ZipURLHandler
-
-func TestMain(m *testing.M) {
-	service = new(ServiceMock)
-	service.On("ZipURL", "full_URL").Return("short_URL", nil)
-	service.On("ZipURL", "").Return("", errors.New("URL is empty"))
-
-	service.On("ZipURLv2", "full_URL").Return("short_URL", nil)
-	service.On("ZipURLv2", "").Return("short_URL", errors.New("URL is empty"))
-
-	service.On("UnzipURL", "short_URL").Return("full_URL", nil)
-	service.On("UnzipURL", "xxx").Return("", errors.New("key not found"))
-
-	os.Exit(m.Run())
-}
-*/
-
 func TestZipURLHandler_postMethodHandler(t *testing.T) {
 	type args struct {
 		requestBody string

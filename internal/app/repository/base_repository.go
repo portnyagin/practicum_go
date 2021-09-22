@@ -1,4 +1,4 @@
-package app
+package repository
 
 import (
 	"encoding/gob"
@@ -126,7 +126,7 @@ func (r *BaseRepository) Find(key string) (service.RepoRecord, error) {
 	}
 }
 
-func (r *BaseRepository) FindByUser(key string) ([]service.RepoRecord, error) {
+func (r *BaseRepository) FindByUser(key string) ([]string, error) {
 	// TODO: implenent!
 	return nil, nil
 }
