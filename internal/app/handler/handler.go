@@ -61,6 +61,7 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 	b, err := getRequestBody(r)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 	if string(b) == "" {

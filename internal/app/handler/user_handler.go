@@ -74,6 +74,12 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 			return
 		} else {
 			// записать ответ
+			// res -> DTO
+			resultDTO := make([]UserURLsDTO, len(res))
+			for i := range res {
+				// TODO:
+				resultDTO[i].original_url = res[i]
+			}
 			responseBody, err := json.Marshal(resultDTO)
 			if err != nil {
 				panic("Can't serialize response")
