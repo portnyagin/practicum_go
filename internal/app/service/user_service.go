@@ -11,10 +11,14 @@ func NewUserService(repo Repository) *UserService {
 }
 
 func (s *UserService) GetURLsByUser(userID string) ([]UserURLs, error) {
-	// TODO: Проверить куку
 	_, err := s.repository.FindByUser(userID)
 	if err != nil {
 		return nil, err
 	}
 	return []UserURLs{UserURLs{}}, nil
+}
+
+func (s *UserService) Ping() bool {
+	// TODO:
+	return false
 }

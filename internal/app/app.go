@@ -48,6 +48,7 @@ func Start() {
 		r.Get("/", h.HelloHandler)
 		r.Get("/{id}", h.GetMethodHandler)
 		r.Get("/user/urls", uh.GetUserURLsHandler)
+		r.Get("/ping", uh.PingHandler)
 		r.Post("/api/shorten", h.PostAPIShortenHandler)
 		r.Post("/", h.PostMethodHandler)
 		r.Put("/", h.DefaultHandler)
