@@ -82,8 +82,8 @@ func (s *CryptoServiceImpl) decrypt(src []byte) (string, error) {
 	return string(res), nil
 }
 
-func (s *CryptoServiceImpl) encrypt(user_id []byte) ([]byte, error) {
+func (s *CryptoServiceImpl) encrypt(userId []byte) ([]byte, error) {
 	//TODO:
-	dst := s.aesgcm.Seal(nil, s.nonce, user_id, nil) // зашифровываем
+	dst := s.aesgcm.Seal(nil, s.nonce, userId, nil) // зашифровываем
 	return dst, nil
 }

@@ -65,8 +65,8 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if ok, user_id := z.cryptoService.Validate(token.Value); ok {
-		res, err := z.service.GetURLsByUser(user_id)
+	if ok, userId := z.cryptoService.Validate(token.Value); ok {
+		res, err := z.service.GetURLsByUser(userId)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -97,7 +97,6 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	return
 }
 
 func (z *UserHandler) PingHandler(w http.ResponseWriter, r *http.Request) {
@@ -106,5 +105,4 @@ func (z *UserHandler) PingHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.WriteHeader(http.StatusOK)
-	return
 }
