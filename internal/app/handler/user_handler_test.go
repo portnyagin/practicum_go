@@ -50,10 +50,9 @@ func TestZipURLHandler_GetUserURLsHandler(t *testing.T) {
 func TestUserHandler_getTokenCookie(t *testing.T) {
 
 	type args struct {
-		w          http.ResponseWriter
-		r          *http.Request
-		cookieName string
-		cookieVal  string
+		w        http.ResponseWriter
+		r        *http.Request
+		userName string
 	}
 	tests := []struct {
 		name string
@@ -64,7 +63,7 @@ func TestUserHandler_getTokenCookie(t *testing.T) {
 	}{
 		{
 			name:    "Test #1 (getTokenCookie)",
-			args:    args{w: httptest.NewRecorder(), r: httptest.NewRequest("GET", "/user/urls", nil), cookieName: "token", cookieVal: "valid_user_Token"},
+			args:    args{w: httptest.NewRecorder(), r: httptest.NewRequest("GET", "/user/urls", nil), userName: "userID1"},
 			wantErr: false,
 		},
 	}
@@ -77,8 +76,7 @@ func TestUserHandler_getTokenCookie(t *testing.T) {
 				return
 			}
 			// check returned cookie (name and value)
-			assert.Equal(t, tt.args.cookieName, got.Name, "Expected cookie.name is %s, got %s", got.Name, tt.args.cookieName)
-			assert.Equal(t, tt.args.cookieVal, got.Value, "Expected cookie.value is %s, got %s", got.Value, tt.args.cookieVal)
+			assert.Equal(t, tt.args.userName, got, "Expected cookie.name is %s, got %s", got, tt.args.userName)
 		})
 	}
 }

@@ -41,6 +41,11 @@ func (s *UserServiceMock) Ping() bool {
 	return args.Bool(0)
 }
 
+func (s *UserServiceMock) Save(userID string, originalURL string, shortURL string) error {
+	args := s.Called(userID, originalURL, shortURL)
+	return args.Error(0)
+}
+
 //----------------------------------------------------------------
 
 type CryptoServiceMock struct {
