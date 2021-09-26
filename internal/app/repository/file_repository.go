@@ -128,7 +128,7 @@ func (r *FileRepository) Find(key string) (model.RepoRecord, error) {
 
 func (r *FileRepository) FindByUser(key string) ([]model.UserURLs, error) {
 	//
-	return nil, errors.New("Unexpecting using of method")
+	return nil, errors.New("unexpecting using of method")
 }
 
 // TODO: Нужен хороший тест

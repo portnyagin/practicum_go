@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	config2 "github.com/portnyagin/practicum_go/internal/app/config"
-	"github.com/portnyagin/practicum_go/internal/app/custom_middleware"
+	"github.com/portnyagin/practicum_go/internal/app/customMiddleware"
 	"github.com/portnyagin/practicum_go/internal/app/handler"
 	"github.com/portnyagin/practicum_go/internal/app/infrastructure"
 	"github.com/portnyagin/practicum_go/internal/app/repository"
@@ -36,7 +36,7 @@ func Start() {
 		fmt.Println("can't init file repository", err)
 		return
 	}
-	postgresHandler, err := infrastructure.NewPostgresqlHandler(context.Background(), config.Database_dsn)
+	postgresHandler, err := infrastructure.NewPostgresqlHandler(context.Background(), config.DatabaseDSN)
 	if err != nil {
 		fmt.Println("can't init postgres handler", err)
 		return
@@ -56,7 +56,7 @@ func Start() {
 	router.Use(middleware.CleanPath)
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
-	router.Use(custom_middleware.Compress)
+	router.Use(customMiddleware.Compress)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", h.HelloHandler)
 		r.Get("/{id}", h.GetMethodHandler)

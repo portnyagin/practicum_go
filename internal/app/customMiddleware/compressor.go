@@ -1,4 +1,4 @@
-package custom_middleware
+package customMiddleware
 
 import (
 	"compress/gzip"

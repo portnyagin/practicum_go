@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/portnyagin/practicum_go/internal/app/repository/base_db_handler"
+	"github.com/portnyagin/practicum_go/internal/app/repository/baseDBHandler"
 )
 
 type PostgresqlHandler struct {
@@ -32,7 +32,7 @@ func (handler *PostgresqlHandler) Execute(statement string, args ...interface{})
 	return err
 }
 
-func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}) (base_db_handler.Row, error) {
+func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}) (baseDBHandler.Row, error) {
 	var row pgx.Row
 	conn, err := handler.pool.Acquire(handler.ctx)
 	if err != nil {
@@ -49,7 +49,7 @@ func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}
 	return row, nil
 }
 
-func (handler *PostgresqlHandler) Query(statement string, args ...interface{}) (base_db_handler.Rows, error) {
+func (handler *PostgresqlHandler) Query(statement string, args ...interface{}) (baseDBHandler.Rows, error) {
 	var rows pgx.Rows
 
 	conn, err := handler.pool.Acquire(handler.ctx)
@@ -76,8 +76,13 @@ func (handler *PostgresqlHandler) Close() {
 }
 
 func NewPostgresqlHandler(ctx context.Context, dataSource string) (*PostgresqlHandler, error) {
-	//var dbURL string = fmt.Sprintf("postgresql://%s:%s@%s:%s/%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Dbname)
+	// Format DSN
+	//("postgresql://%s:%s@%s:%s/%s", cfg.User, cfg.Password, cfg.Host, cfg.Port, cfg.Dbname)
+
 	poolConfig, err := pgxpool.ParseConfig(dataSource)
+	if err != nil {
+		return nil, err
+	}
 	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
 	if err != nil {
 		return nil, err

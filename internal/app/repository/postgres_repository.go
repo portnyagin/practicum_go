@@ -2,21 +2,16 @@ package repository
 
 import (
 	"github.com/portnyagin/practicum_go/internal/app/model"
-	"github.com/portnyagin/practicum_go/internal/app/repository/base_db_handler"
+	"github.com/portnyagin/practicum_go/internal/app/repository/baseDBHandler"
 )
 
 type PostgresRepository struct {
-	handler base_db_handler.DbHandler
+	handler baseDBHandler.DBHandler
 }
 
-func NewPostgresRepository(handler base_db_handler.DbHandler) (*PostgresRepository, error) {
+func NewPostgresRepository(handler baseDBHandler.DBHandler) (*PostgresRepository, error) {
 	var repo PostgresRepository
-	var err error
-	// TODO:
 	repo.handler = handler
-	if err != nil {
-		return nil, err
-	}
 	return &repo, nil
 }
 

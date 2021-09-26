@@ -9,6 +9,6 @@ type ShortenRequestDTO struct {
 }
 
 type UserURLsDTO struct {
-	short_url    string `json:"short___url"`
-	original_url string `json:"original___url"`
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
