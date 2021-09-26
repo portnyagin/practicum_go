@@ -41,6 +41,12 @@ func Start() {
 		fmt.Println("can't init postgres handler", err)
 		return
 	}
+	err = repository.InitDatabase(postgresHandler)
+	if err != nil {
+		fmt.Println("can't init database structure", err)
+		return
+	}
+
 	postgresRepository, err := repository.NewPostgresRepository(postgresHandler)
 	if err != nil {
 		fmt.Println("can't init postgres repository", err)
