@@ -19,14 +19,17 @@ type UserService interface {
 }
 
 type UserHandler struct {
-	service       UserService
+	userService   UserService
+	service       Service
 	cryptoService CryptoService
 }
 
-func NewUserHandler(service UserService, cs CryptoService) *UserHandler {
+func NewUserHandler(userService UserService, service Service, cs CryptoService) *UserHandler {
 	var h UserHandler
+	h.userService = userService
 	h.service = service
 	h.cryptoService = cs
+
 	return &h
 }
 
@@ -67,7 +70,7 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	res, err := z.service.GetURLsByUser(userID)
+	res, err := z.userService.GetURLsByUser(userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -92,9 +95,106 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (z *UserHandler) PingHandler(w http.ResponseWriter, r *http.Request) {
-	if !z.service.Ping() {
+	if !z.userService.Ping() {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
+}
+
+func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := getRequestBody(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	userID, err := z.getTokenCookie(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	if string(b) == "" {
+		writeBadRequest(w)
+		return
+	} else {
+		res, _ := z.service.ZipURL(string(b))
+		err = z.userService.Save(userID, string(b), res)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write([]byte(res))
+		if err != nil {
+			panic("Can't write response")
+		}
+		return
+	}
+}
+
+func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := getRequestBody(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	userID, err := z.getTokenCookie(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if string(b) == "" {
+		writeBadRequest(w)
+		return
+	} else {
+		var req dto.ShortenRequestDTO
+		if err := json.Unmarshal(b, &req); err != nil {
+			writeBadRequest(w)
+			return
+		}
+		res, err := z.service.ZipURL(req.URL)
+		if err != nil {
+			writeBadRequest(w)
+			return
+		}
+
+		err = z.userService.Save(userID, req.URL, res)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		resultDTO := dto.ShortenResponseDTO{Result: res}
+
+		responseBody, err := json.Marshal(resultDTO)
+		if err != nil {
+			panic("Can't serialize response")
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusCreated)
+		_, err = w.Write(responseBody)
+		if err != nil {
+			panic("Can't write response")
+		}
+		return
+	}
+}
+
+func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusAccepted)
+	_, err := w.Write([]byte("Hello"))
+	if err != nil {
+		panic("Can't write response")
+	}
+}
+
+func (z *UserHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusBadRequest)
+	_, err := w.Write([]byte("Unsupported request type"))
+	if err != nil {
+		panic("Can't write response")
+	}
 }

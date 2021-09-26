@@ -32,6 +32,6 @@ func TestMain(m *testing.M) {
 
 	cryptoService.On("GetNewUserToken").Return("user_id", "valid_user_Token", nil)
 
-	userHandler = NewUserHandler(userService, cryptoService)
+	userHandler = NewUserHandler(userService, service, cryptoService)
 	os.Exit(m.Run())
 }

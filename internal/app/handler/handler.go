@@ -95,6 +95,7 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// По хорошему надо отключить, так как выхов не авторизованный. Но непонятно что будет  с тестами
 func (z *ZipURLHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	if r.RequestURI == "" || r.RequestURI[1:] == "" {
 		writeBadRequest(w)
