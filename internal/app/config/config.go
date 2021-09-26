@@ -12,7 +12,7 @@ type AppConfig struct {
 	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8080/"`
 	FileStorage   string `env:"FILE_STORAGE_PATH" envDefault:"./data/storage.dat"`
 	DatabaseDSN   string `env:"DATABASE_DSN" envDefault:"postgresql://practicum:practicum@127.0.0.1:5432/postgres"`
-	Reinit        bool   `env:REINIT envDefault:false`
+	Reinit        bool   `env:"REINIT" envDefault:"false"`
 }
 
 func (config *AppConfig) Init() error {

@@ -131,7 +131,6 @@ func (r *FileRepository) FindByUser(key string) ([]model.UserURLs, error) {
 	return nil, errors.New("unexpecting using of method")
 }
 
-// TODO: Нужен хороший тест
 func (r *FileRepository) Save(key string, value string) error {
 	var err error
 	r.Lock()

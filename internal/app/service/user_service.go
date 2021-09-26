@@ -28,16 +28,15 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	if err != nil {
 		return nil, err
 	}
-	var resDtoList []*dto.UserURLsDTO
+	var resDtoList []dto.UserURLsDTO
 	for _, rec := range resArr {
 		dto, err := s.mapUserURLsDTO(&rec)
 		if err != nil {
 			return nil, errors.New("can't map result to UserURLsDTO")
-			break
 		}
-		resDtoList = append(resDtoList, dto)
+		resDtoList = append(resDtoList, *dto)
 	}
-	return []dto.UserURLsDTO{}, nil
+	return resDtoList, nil
 }
 
 func (s *UserService) Save(userID string, originalURL string, shortURL string) error {
@@ -49,7 +48,6 @@ func (s *UserService) Save(userID string, originalURL string, shortURL string) e
 }
 
 func (s *UserService) Ping() bool {
-	// TODO:
 	res, _ := s.repository.Ping()
 	return res
 }
