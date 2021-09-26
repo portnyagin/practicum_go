@@ -6,7 +6,7 @@ package model
 //}
 
 type UserURLs struct {
-	Id          int
+	ID          int
 	UserID      string
 	ShortURL    string
 	OriginalURL string

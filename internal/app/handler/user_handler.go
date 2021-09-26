@@ -65,8 +65,8 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if ok, userId := z.cryptoService.Validate(token.Value); ok {
-		res, err := z.service.GetURLsByUser(userId)
+	if ok, userID := z.cryptoService.Validate(token.Value); ok {
+		res, err := z.service.GetURLsByUser(userID)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
