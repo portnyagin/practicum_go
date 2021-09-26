@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"errors"
+	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"net/http"
 )
 
@@ -12,7 +13,7 @@ type CryptoService interface {
 }
 
 type UserService interface {
-	GetURLsByUser(userID string) ([]string, error)
+	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
 	Ping() bool
 }
 
@@ -76,12 +77,12 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		} else {
 			// записать ответ
 			// res -> DTO
-			resultDTO := make([]UserURLsDTO, len(res))
+			/*resultDTO := make([]UserURLsDTO, len(res))
 			for i := range res {
 				// TODO:
 				resultDTO[i].original_url = res[i]
-			}
-			responseBody, err := json.Marshal(resultDTO)
+			}*/
+			responseBody, err := json.Marshal(res)
 			if err != nil {
 				panic("Can't serialize response")
 			}

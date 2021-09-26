@@ -3,26 +3,19 @@ package service
 import (
 	"encoding/base64"
 	"errors"
+	"github.com/portnyagin/practicum_go/internal/app/model"
 	//"github.com/portnyagin/practicum_go/internal/app/handler"
 )
 
 type EncodeFunc func(str string) string
 
 type ZipService struct {
-	repository Repository
+	repository model.Repository
 	encode     EncodeFunc
 	baseURL    string
 }
 
-type RepoRecord = string
-
-type Repository interface {
-	Find(key string) (RepoRecord, error)
-	Save(key string, value string) error
-	FindByUser(key string) ([]RepoRecord, error)
-}
-
-func NewZipService(repo Repository, baseURL string) *ZipService {
+func NewZipService(repo model.Repository, baseURL string) *ZipService {
 	var s ZipService
 	s.repository = repo
 	s.encode = func(str string) string {

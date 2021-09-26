@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"net/http"
 )
 
@@ -68,7 +69,7 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 		writeBadRequest(w)
 		return
 	} else {
-		var req ShortenRequestDTO
+		var req dto.ShortenRequestDTO
 		if err := json.Unmarshal(b, &req); err != nil {
 			writeBadRequest(w)
 			return
@@ -78,7 +79,7 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 			writeBadRequest(w)
 			return
 		}
-		resultDTO := ShortenResponseDTO{res}
+		resultDTO := dto.ShortenResponseDTO{res}
 
 		responseBody, err := json.Marshal(resultDTO)
 		if err != nil {

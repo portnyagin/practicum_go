@@ -1,12 +1,14 @@
 package app
 
 import (
+	"context"
 	"fmt"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	config2 "github.com/portnyagin/practicum_go/internal/app/config"
 	"github.com/portnyagin/practicum_go/internal/app/custom_middleware"
 	"github.com/portnyagin/practicum_go/internal/app/handler"
+	"github.com/portnyagin/practicum_go/internal/app/infrastructure"
 	"github.com/portnyagin/practicum_go/internal/app/repository"
 	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
@@ -28,14 +30,25 @@ func Start() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	repo, err := repository.NewBaseRepository(config.FileStorage)
+	fileRepository, err := repository.NewFileRepository(config.FileStorage)
+
 	if err != nil {
-		fmt.Println("can't init repository", err)
+		fmt.Println("can't init file repository", err)
 		return
 	}
-	service := service2.NewZipService(repo, config.BaseURL)
+	postgresHandler, err := infrastructure.NewPostgresqlHandler(context.Background(), config.Database_dsn)
+	if err != nil {
+		fmt.Println("can't init postgres handler", err)
+		return
+	}
+	postgresRepository, err := repository.NewPostgresRepository(postgresHandler)
+	if err != nil {
+		fmt.Println("can't init postgres repository", err)
+		return
+	}
+	service := service2.NewZipService(fileRepository, config.BaseURL)
 	cs, _ := service2.NewCryptoService()
-	userService := service2.NewUserService(repo)
+	userService := service2.NewUserService(postgresRepository)
 	//zip, _ := service2.NewCompressService()
 	h := handler.NewZipURLHandler(service)
 	uh := handler.NewUserHandler(userService, cs)

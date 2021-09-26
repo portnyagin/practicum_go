@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
@@ -61,7 +62,7 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 
 func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 	type args struct {
-		request *ShortenRequestDTO
+		request *dto.ShortenRequestDTO
 	}
 	type wants struct {
 		responseCode int
@@ -73,7 +74,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 		wants wants
 	}{
 		{name: "POST test #1 (Positive)",
-			args: args{request: &ShortenRequestDTO{"full_URL"}},
+			args: args{request: &dto.ShortenRequestDTO{"full_URL"}},
 			wants: wants{responseCode: http.StatusCreated,
 				response: "short_URL"},
 		},
@@ -83,7 +84,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 				response: ""},
 		},
 		{name: "POST test #3 (Object with empty url)",
-			args: args{request: &ShortenRequestDTO{""}},
+			args: args{request: &dto.ShortenRequestDTO{""}},
 			wants: wants{responseCode: http.StatusBadRequest,
 				response: ""},
 		},
@@ -110,7 +111,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
-				var resultDTO ShortenResponseDTO
+				var resultDTO dto.ShortenResponseDTO
 				if err := json.Unmarshal(responseBody, &resultDTO); err != nil {
 					t.Error("Can't unmarshal dto", err)
 				}
@@ -162,7 +163,7 @@ func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
-				var resultDTO ShortenResponseDTO
+				var resultDTO dto.ShortenResponseDTO
 				if err := json.Unmarshal(responseBody, &resultDTO); err != nil {
 					t.Error("Can't unmarshal dto", err)
 				}

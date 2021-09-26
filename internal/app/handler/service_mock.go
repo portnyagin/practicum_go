@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/stretchr/testify/mock"
 )
 
@@ -13,9 +14,9 @@ func (s *ServiceMock) ZipURL(url string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (s *ServiceMock) ZipURLv2(url string) (*ShortenResponseDTO, error) {
+func (s *ServiceMock) ZipURLv2(url string) (*dto.ShortenResponseDTO, error) {
 	args := s.Called(url)
-	return &ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
+	return &dto.ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
 }
 
 func (s *ServiceMock) UnzipURL(key string) (string, error) {
@@ -28,9 +29,16 @@ type UserServiceMock struct {
 	mock.Mock
 }
 
-func (s *UserServiceMock) GetURLsByUser(userID string) ([]string, error) {
+func (s *UserServiceMock) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	args := s.Called(userID)
-	return []string{args.String(0)}, args.Error(1)
+	// TODO:
+	return []dto.UserURLsDTO{}, args.Error(1)
+}
+
+func (s *UserServiceMock) Ping() bool {
+	args := s.Called()
+	// TODO:
+	return args.Bool(0)
 }
 
 //----------------------------------------------------------------

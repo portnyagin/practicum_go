@@ -1,4 +1,4 @@
-package handler
+package dto
 
 type ShortenResponseDTO struct {
 	Result string `json:"result"`

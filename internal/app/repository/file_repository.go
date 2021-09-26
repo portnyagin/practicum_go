@@ -3,14 +3,14 @@ package repository
 import (
 	"encoding/gob"
 	"errors"
-	"github.com/portnyagin/practicum_go/internal/app/service"
+	"github.com/portnyagin/practicum_go/internal/app/model"
 	"io"
 	"os"
 	"path"
 	"sync"
 )
 
-type BaseRepository struct {
+type FileRepository struct {
 	sync.Mutex
 	store          map[string]string
 	cfgFileStorage string
@@ -23,8 +23,8 @@ type StoreRecord struct {
 	Value string
 }
 
-func NewBaseRepository(fileStorage string) (*BaseRepository, error) {
-	var r BaseRepository
+func NewFileRepository(fileStorage string) (*FileRepository, error) {
+	var r FileRepository
 	var tmpPath string
 	r.cfgFileStorage = fileStorage
 	r.store = make(map[string]string)
@@ -64,7 +64,7 @@ func NewBaseRepository(fileStorage string) (*BaseRepository, error) {
 	return &r, nil
 }
 
-func (r *BaseRepository) copyStoreToTmp() (string, error) {
+func (r *FileRepository) copyStoreToTmp() (string, error) {
 	in, err := os.Open(r.cfgFileStorage)
 	if err != nil {
 		return "", err
@@ -86,7 +86,7 @@ func (r *BaseRepository) copyStoreToTmp() (string, error) {
 	return dstPath, out.Close()
 }
 
-func (r *BaseRepository) init(filePath string) error {
+func (r *FileRepository) init(filePath string) error {
 	f, err := os.OpenFile(filePath, os.O_RDONLY|os.O_CREATE, 0755)
 	if err != nil {
 		return err
@@ -107,7 +107,7 @@ func (r *BaseRepository) init(filePath string) error {
 	return nil
 }
 
-func (r *BaseRepository) flush() error {
+func (r *FileRepository) flush() error {
 	for k, v := range r.store {
 		rec := StoreRecord{Key: k, Value: v}
 		err := r.encoder.Encode(&rec)
@@ -118,7 +118,7 @@ func (r *BaseRepository) flush() error {
 	return nil
 }
 
-func (r *BaseRepository) Find(key string) (service.RepoRecord, error) {
+func (r *FileRepository) Find(key string) (model.RepoRecord, error) {
 	if val, ok := r.store[key]; ok {
 		return val, nil
 	} else {
@@ -126,13 +126,13 @@ func (r *BaseRepository) Find(key string) (service.RepoRecord, error) {
 	}
 }
 
-func (r *BaseRepository) FindByUser(key string) ([]string, error) {
-	// TODO: implenent!
-	return nil, nil
+func (r *FileRepository) FindByUser(key string) ([]model.UserURLs, error) {
+	//
+	return nil, errors.New("Unexpecting using of method")
 }
 
 // TODO: Нужен хороший тест
-func (r *BaseRepository) Save(key string, value string) error {
+func (r *FileRepository) Save(key string, value string) error {
 	var err error
 	r.Lock()
 	defer r.Unlock()
@@ -154,4 +154,8 @@ func (r *BaseRepository) Save(key string, value string) error {
 		err = r.encoder.Encode(&rec)
 	}
 	return err
+}
+
+func (r *FileRepository) Ping() (bool, error) {
+	return true, nil
 }
