@@ -1,15 +1,15 @@
 package model
 
 //type UserURLs struct {
-//	shortURL    string
-//	originalURL string
+//	ShortURL    string
+//	OriginalURL string
 //}
 
 type UserURLs struct {
-	id          int
-	userId      string
-	shortURL    string
-	originalURL string
+	Id          int
+	UserID      string
+	ShortURL    string
+	OriginalURL string
 }
 
 type RepoRecord = string

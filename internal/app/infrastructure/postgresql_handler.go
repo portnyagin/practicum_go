@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/portnyagin/practicum_go/internal/app/repository/baseDBHandler"
+	"github.com/portnyagin/practicum_go/internal/app/repository/basedbhandler"
 )
 
 type PostgresqlHandler struct {
@@ -32,7 +32,7 @@ func (handler *PostgresqlHandler) Execute(statement string, args ...interface{})
 	return err
 }
 
-func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}) (baseDBHandler.Row, error) {
+func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}) (basedbhandler.Row, error) {
 	var row pgx.Row
 	conn, err := handler.pool.Acquire(handler.ctx)
 	if err != nil {
@@ -49,7 +49,7 @@ func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}
 	return row, nil
 }
 
-func (handler *PostgresqlHandler) Query(statement string, args ...interface{}) (baseDBHandler.Rows, error) {
+func (handler *PostgresqlHandler) Query(statement string, args ...interface{}) (basedbhandler.Rows, error) {
 	var rows pgx.Rows
 
 	conn, err := handler.pool.Acquire(handler.ctx)

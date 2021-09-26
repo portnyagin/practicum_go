@@ -74,7 +74,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 		wants wants
 	}{
 		{name: "POST test #1 (Positive)",
-			args: args{request: &dto.ShortenRequestDTO{"full_URL"}},
+			args: args{request: &dto.ShortenRequestDTO{URL: "full_URL"}},
 			wants: wants{responseCode: http.StatusCreated,
 				response: "short_URL"},
 		},
@@ -84,7 +84,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 				response: ""},
 		},
 		{name: "POST test #3 (Object with empty url)",
-			args: args{request: &dto.ShortenRequestDTO{""}},
+			args: args{request: &dto.ShortenRequestDTO{URL: ""}},
 			wants: wants{responseCode: http.StatusBadRequest,
 				response: ""},
 		},

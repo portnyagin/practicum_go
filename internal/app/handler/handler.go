@@ -79,7 +79,7 @@ func (z *ZipURLHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Req
 			writeBadRequest(w)
 			return
 		}
-		resultDTO := dto.ShortenResponseDTO{res}
+		resultDTO := dto.ShortenResponseDTO{Result: res}
 
 		responseBody, err := json.Marshal(resultDTO)
 		if err != nil {

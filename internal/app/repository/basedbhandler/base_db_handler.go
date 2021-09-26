@@ -1,4 +1,4 @@
-package baseDBHandler
+package basedbhandler
 
 type DBHandler interface {
 	Execute(statement string, args ...interface{}) error
