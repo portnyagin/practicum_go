@@ -41,6 +41,13 @@ func Start() {
 		fmt.Println("can't init postgres handler", err)
 		return
 	}
+	if config.Reinit {
+		err = repository.ClearDatabase(postgresHandler)
+		if err != nil {
+			fmt.Println("can't clear database structure", err)
+			return
+		}
+	}
 	err = repository.InitDatabase(postgresHandler)
 	if err != nil {
 		fmt.Println("can't init database structure", err)

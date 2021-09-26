@@ -30,8 +30,29 @@ func (r *PostgresRepository) Ping() (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepository) FindByUser(key string) ([]model.UserURLs, error) {
-	return nil, nil
+func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error) {
+	rows, err := r.handler.Query(database.GetURLsByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	var resArr []model.UserURLs
+	for rows.Next() {
+		var rec model.UserURLs
+		err := rows.Scan(&rec.ID, &rec.UserID, &rec.ShortURL, &rec.OriginalURL)
+		resArr = append(resArr, rec)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return resArr, nil
+}
+
+func (r *PostgresRepository) Save(userID string, shortURL string, originalURL string) error {
+	err := r.handler.Execute(database.InsertUserURL, userID, shortURL, originalURL)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func InitDatabase(h basedbhandler.DBHandler) error {
