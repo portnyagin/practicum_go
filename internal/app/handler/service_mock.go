@@ -46,6 +46,19 @@ func (s *UserServiceMock) Save(userID string, originalURL string, shortURL strin
 	return args.Error(0)
 }
 
+func (s *UserServiceMock) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
+	args := s.Called(userID, srcDTO)
+	var res []dto.UserBatchResultDTO
+	res = append(res, dto.UserBatchResultDTO{CorrelationID: args.String(0), ShortURL: args.String(1)})
+	return res, args.Error(2)
+}
+
+/*
+	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
+
+	SaveBatch(userID string,  srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO,error)
+	Ping() bool
+*/
 //----------------------------------------------------------------
 
 type CryptoServiceMock struct {

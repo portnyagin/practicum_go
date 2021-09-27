@@ -1,7 +1,10 @@
 package handler
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/stretchr/testify/assert"
 	"net/http"
 	"net/http/httptest"
@@ -120,6 +123,60 @@ func TestUserHandler_getTokenCookieHeader(t *testing.T) {
 			assert.NotEmpty(t, tmp, "Can't got cookie from response")
 			parsedCookie := strings.Split(tmp, "=")
 			assert.ElementsMatch(t, parsedCookie, []string{tt.args.cookieName, tt.args.cookieVal}, "ParsedCookie does not match expected")
+		})
+	}
+}
+
+func TestUserHandler_easytest(t *testing.T) {
+	var req []dto.UserBatchDTO
+	//b := []byte ("[{\"correlation_id\":\"val1\"}]")
+	b := []byte("[{\"correlation_id\": \"correlation1\",\"original_url\": \"original_url_1\"}]")
+	if err := json.Unmarshal(b, &req); err != nil {
+		fmt.Println(err)
+		t.Error(err)
+	}
+	fmt.Println(req)
+}
+
+func TestUserHandler_PostShortenBatchHandler(t *testing.T) {
+	type args struct {
+		requestBody string
+	}
+	type wants struct {
+		responseCode int
+		contentType  string
+		responseBody string
+	}
+	tests := []struct {
+		name  string
+		wants wants
+		args  args
+	}{
+		{name: "ShortenBatchHandler test#1",
+			wants: wants{
+				responseCode: http.StatusCreated,
+				contentType:  "application/json",
+				responseBody: "",
+			},
+			args: args{requestBody: "[{\"correlation_id\": \"correlation1\",\"original_url\": \"original_url_1\"}]"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requestBody := []byte(tt.args.requestBody)
+
+			request := httptest.NewRequest("POST", "/api/shorten/batch", bytes.NewReader(requestBody))
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(userHandler.PostShortenBatchHandler)
+
+			h.ServeHTTP(w, request)
+			res := w.Result()
+			defer res.Body.Close()
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
+			//if res.StatusCode == tt.wants.responseCode {
+			//	assert.Equal(t, tt.wants.resultResponse, res.Header.Get("Location"))
+			//}
 		})
 	}
 }

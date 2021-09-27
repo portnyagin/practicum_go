@@ -61,7 +61,7 @@ func Start() {
 	}
 	service := service2.NewZipService(fileRepository, config.BaseURL)
 	cs, _ := service2.NewCryptoService()
-	userService := service2.NewUserService(postgresRepository)
+	userService := service2.NewUserService(postgresRepository, config.BaseURL)
 	//zip, _ := service2.NewCompressService()
 	h := handler.NewZipURLHandler(service)
 	uh := handler.NewUserHandler(userService, service, cs)
@@ -76,6 +76,7 @@ func Start() {
 		r.Get("/user/urls", uh.GetUserURLsHandler)
 		r.Get("/ping", uh.PingHandler)
 		r.Post("/api/shorten", uh.PostAPIShortenHandler)
+		r.Post("/api/shorten/batch", uh.PostShortenBatchHandler)
 		r.Post("/", uh.PostMethodHandler)
 		r.Put("/", uh.DefaultHandler)
 		r.Patch("/", uh.DefaultHandler)

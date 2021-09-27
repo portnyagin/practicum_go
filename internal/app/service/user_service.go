@@ -1,6 +1,7 @@
 package service
 
 import (
+	"encoding/base64"
 	"errors"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/portnyagin/practicum_go/internal/app/model"
@@ -8,17 +9,39 @@ import (
 
 type UserService struct {
 	repository model.RepositoryV2
+	encode     EncodeFunc
+	baseURL    string
 }
 
-func NewUserService(repo model.RepositoryV2) *UserService {
+func NewUserService(repo model.RepositoryV2, baseURL string) *UserService {
 	var s UserService
 	s.repository = repo
+	s.encode = func(str string) string {
+		return base64.StdEncoding.EncodeToString([]byte(str))
+	}
+	s.baseURL = baseURL
 	return &s
 }
 
+func (s *UserService) zipURL(url string) (string, error) {
+	if url == "" {
+		return "", errors.New("URL is empty")
+	}
+	key := s.encode(url)
+	return s.baseURL + key, nil
+}
+
+//********** Mappers *****************************************************************/
 func (s *UserService) mapUserURLsDTO(src *model.UserURLs) (*dto.UserURLsDTO, error) {
 	return &dto.UserURLsDTO{ShortURL: src.ShortURL, OriginalURL: src.OriginalURL}, nil
 }
+
+func (s *UserService) mapDTOToUserBatch(src *dto.UserBatchDTO) (*model.UserBatchURLs, error) {
+
+	return nil, nil
+}
+
+//********** Mappers *****************************************************************/
 
 func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	if userID == "" {
@@ -45,6 +68,31 @@ func (s *UserService) Save(userID string, originalURL string, shortURL string) e
 		return err
 	}
 	return nil
+}
+
+func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
+	var (
+		res    model.UserBatchURLs
+		err    error
+		resDTO []dto.UserBatchResultDTO
+	)
+	res.UserID = userID
+	for _, obj := range srcDTO {
+		var e model.Element
+		e.CorrelationID = obj.CorrelationID
+		e.OriginalURL = obj.OriginalURL
+		e.ShortURL, err = s.zipURL(obj.OriginalURL)
+		if err != nil {
+			return nil, err
+		}
+		res.List = append(res.List, e)
+		resDTO = append(resDTO, dto.UserBatchResultDTO{CorrelationID: obj.CorrelationID, ShortURL: e.ShortURL})
+	}
+	err = s.repository.SaveBatch(res)
+	if err != nil {
+		return nil, err
+	}
+	return resDTO, nil
 }
 
 func (s *UserService) Ping() bool {

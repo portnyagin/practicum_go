@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"fmt"
+	"errors"
 	"github.com/portnyagin/practicum_go/internal/app/database"
 	"github.com/portnyagin/practicum_go/internal/app/model"
 	"github.com/portnyagin/practicum_go/internal/app/repository/basedbhandler"
@@ -55,19 +55,42 @@ func (r *PostgresRepository) Save(userID string, shortURL string, originalURL st
 	return nil
 }
 
-func InitDatabase(h basedbhandler.DBHandler) error {
-	err := h.Execute(database.CreateDatabaseStructure)
+func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
+	// TODO
+	var paramArr [][]interface{}
+	for _, obj := range src.List {
+		var paramLine []interface{}
+		paramLine = append(paramLine, src.UserID)
+		paramLine = append(paramLine, obj.CorrelationID)
+		paramLine = append(paramLine, obj.OriginalURL)
+		paramLine = append(paramLine, obj.ShortURL)
+		paramArr = append(paramArr, paramLine)
+	}
+	err := r.handler.ExecuteBatch(database.InsertUserURL2, paramArr)
 	if err != nil {
 		return err
 	}
-	fmt.Println("Database structure created successfully")
 	return nil
 }
 
-func ClearDatabase(h basedbhandler.DBHandler) error {
-	err := h.Execute(database.ClearDatabaseStructure)
-	if err != nil {
-		return err
+func (r *PostgresRepository) ReadBatch(userID string) (*model.UserBatchURLs, error) {
+	if userID == "" {
+		return nil, errors.New("userID is empty")
 	}
-	return nil
+	rows, err := r.handler.Query(database.AllUserURLsWithCorrelationIDByUserID, userID)
+	if err != nil {
+		return nil, err
+	}
+	var res model.UserBatchURLs
+	res.UserID = userID
+
+	for rows.Next() {
+		var e model.Element
+		err := rows.Scan(&e.CorrelationID, &e.OriginalURL, &e.ShortURL)
+		if err != nil {
+			return nil, err
+		}
+		res.List = append(res.List, e)
+	}
+	return &res, nil
 }

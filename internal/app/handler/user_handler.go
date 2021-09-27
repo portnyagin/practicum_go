@@ -15,6 +15,7 @@ type CryptoService interface {
 type UserService interface {
 	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
 	Save(userID string, originalURL string, shortURL string) error
+	SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
 	Ping() bool
 }
 
@@ -47,8 +48,14 @@ func (z *UserHandler) bakeCookie() (*http.Cookie, string, error) {
 // function try to read cookie from request. If cookie isn't set or cookie isn't valid, then generate and set new cookie
 // return  userID
 func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (string, error) {
+	var (
+		userID string
+		ok     bool
+	)
 	token, err := r.Cookie("token")
-	ok, userID := z.cryptoService.Validate(token.Value)
+	if err == nil {
+		ok, userID = z.cryptoService.Validate(token.Value)
+	}
 	if errors.Is(err, http.ErrNoCookie) || !ok {
 		var newToken *http.Cookie
 		newToken, userID, err = z.bakeCookie()
@@ -181,6 +188,43 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+}
+
+func (z *UserHandler) PostShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := getRequestBody(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	userID, err := z.getTokenCookie(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var req []dto.UserBatchDTO
+	if err := json.Unmarshal(b, &req); err != nil {
+		writeBadRequest(w)
+		return
+	}
+	resultDTO, err := z.userService.SaveBatch(userID, req)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	responseBody, err := json.Marshal(resultDTO)
+	if err != nil {
+		panic("Can't serialize response")
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	_, err = w.Write(responseBody)
+	if err != nil {
+		panic("Can't write response")
+	}
+
 }
 
 func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {

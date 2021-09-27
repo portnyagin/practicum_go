@@ -2,6 +2,7 @@ package infrastructure
 
 import (
 	"context"
+	"fmt"
 	"github.com/jackc/pgx/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	"github.com/portnyagin/practicum_go/internal/app/repository/basedbhandler"
@@ -20,16 +21,41 @@ var ErrNotFound = pgx.ErrNoRows
 
 func (handler *PostgresqlHandler) Execute(statement string, args ...interface{}) error {
 	conn, err := handler.pool.Acquire(handler.ctx)
-	defer conn.Release()
 	if err != nil {
 		return err
 	}
+	defer conn.Release()
 	if len(args) > 0 {
 		_, err = conn.Exec(handler.ctx, statement, args...)
 	} else {
 		_, err = conn.Exec(handler.ctx, statement)
 	}
+
 	return err
+}
+
+func (handler *PostgresqlHandler) ExecuteBatch(statement string, args [][]interface{}) error {
+	conn, err := handler.pool.Acquire(handler.ctx)
+	if err != nil {
+		return err
+	}
+	defer conn.Release()
+
+	batch := &pgx.Batch{}
+	if len(args) > 0 {
+		for _, argset := range args {
+			batch.Queue(statement, argset...)
+		}
+	} else {
+		return nil
+	}
+	br := conn.SendBatch(context.Background(), batch)
+	ct, err := br.Exec()
+	if err != nil {
+		return err
+	}
+	fmt.Println(ct.RowsAffected())
+	return nil
 }
 
 func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}) (basedbhandler.Row, error) {
