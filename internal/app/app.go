@@ -63,7 +63,7 @@ func Start() {
 	cs, _ := service2.NewCryptoService()
 	userService := service2.NewUserService(postgresRepository, config.BaseURL)
 	//zip, _ := service2.NewCompressService()
-	h := handler.NewZipURLHandler(service)
+	//h := handler.NewZipURLHandler(service)
 	uh := handler.NewUserHandler(userService, service, cs)
 	router := chi.NewRouter()
 	router.Use(middleware.CleanPath)
@@ -72,7 +72,7 @@ func Start() {
 	router.Use(custommiddleware.Compress)
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", uh.HelloHandler)
-		r.Get("/{id}", h.GetMethodHandler)
+		r.Get("/{id}", uh.GetMethodHandler)
 		r.Get("/user/urls", uh.GetUserURLsHandler)
 		r.Get("/ping", uh.PingHandler)
 		r.Post("/api/shorten", uh.PostAPIShortenHandler)

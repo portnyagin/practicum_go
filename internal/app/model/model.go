@@ -36,7 +36,8 @@ type UserBatchURLs struct {
 
 type RepositoryV2 interface {
 	FindByUser(userID string) ([]UserURLs, error)
-	Save(userID string, shortURL string, originalURL string) error
+	FindByShort(shortURL string) (string, error)
+	Save(userID string, originalURL string, shortURL string) error
 	SaveBatch(UserBatchURLs) error
 	Ping() (bool, error)
 }

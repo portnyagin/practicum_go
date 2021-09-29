@@ -86,3 +86,16 @@ func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
 	}
 	return nil
 }
+
+func (r *PostgresRepository) FindByShort(shortURL string) (string, error) {
+	row, err := r.handler.QueryRow(database.GetOriginalURLByShort, shortURL)
+	if err != nil {
+		return "", err
+	}
+	var res string
+	err = row.Scan(&res)
+	if err != nil {
+		return "", err
+	}
+	return res, nil
+}

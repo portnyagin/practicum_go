@@ -33,6 +33,7 @@ func TestMain(m *testing.M) {
 
 	userService.On("Save", "user_id", "original_URL", "short_URL").Return(nil)
 	userService.On("Save", "user_id", "bad_URL", "short_URL").Return(dto.ErrDuplicateKey)
+	userService.On("GetURLByShort", "short_URL").Return("full_url", nil)
 
 	handler = NewZipURLHandler(service)
 

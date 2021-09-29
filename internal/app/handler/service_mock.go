@@ -58,12 +58,11 @@ func (s *UserServiceMock) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([
 	return res, args.Error(2)
 }
 
-/*
-	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
+func (s *UserServiceMock) GetURLByShort(shortURL string) (string, error) {
+	args := s.Called(shortURL)
+	return args.String(0), args.Error(1)
+}
 
-	SaveBatch(userID string,  srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO,error)
-	Ping() bool
-*/
 //----------------------------------------------------------------
 
 type CryptoServiceMock struct {

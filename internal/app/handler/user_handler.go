@@ -16,6 +16,7 @@ type UserService interface {
 	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
 	Save(userID string, originalURL string, shortURL string) error
 	SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
+	GetURLByShort(shortURL string) (string, error)
 	Ping() bool
 }
 
@@ -237,6 +238,23 @@ func (z *UserHandler) PostShortenBatchHandler(w http.ResponseWriter, r *http.Req
 		panic("Can't write response")
 	}
 
+}
+
+func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
+	if r.RequestURI == "" || r.RequestURI[1:] == "" {
+		writeBadRequest(w)
+		return
+	} else {
+		key := r.RequestURI[1:]
+		res, err := z.userService.GetURLByShort(key)
+		if err != nil {
+			writeBadRequest(w)
+			return
+		}
+		w.Header().Set("Location", res)
+		w.WriteHeader(http.StatusTemporaryRedirect)
+		return
+	}
 }
 
 func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {

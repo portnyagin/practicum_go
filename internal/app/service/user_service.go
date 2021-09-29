@@ -58,7 +58,7 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 }
 
 func (s *UserService) Save(userID string, originalURL string, shortURL string) error {
-	err := s.repository.Save(userID, shortURL, originalURL)
+	err := s.repository.Save(userID, originalURL, shortURL)
 	if errors.Is(err, &model.UniqueViolation) {
 		return dto.ErrDuplicateKey
 	}
@@ -94,6 +94,18 @@ func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto
 		return nil, err
 	}
 	return resDTO, nil
+}
+
+func (s *UserService) GetURLByShort(shortURL string) (string, error) {
+	if shortURL == "" {
+		return "", errors.New("shortURL is empty")
+	}
+	originalURL, err := s.repository.FindByShort(shortURL)
+	if err != nil {
+		return "", err
+	}
+
+	return originalURL, nil
 }
 
 func (s *UserService) Ping() bool {
