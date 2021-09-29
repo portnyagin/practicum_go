@@ -33,7 +33,7 @@ func (r *PostgresRepository) Ping() (bool, error) {
 }
 
 func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error) {
-	rows, err := r.handler.Query(database.GetURLsByUserID2, userID)
+	rows, err := r.handler.Query(database.GetURLsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +49,8 @@ func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error)
 	return resArr, nil
 }
 
-func (r *PostgresRepository) Save(userID string, shortURL string, originalURL string) error {
-	err := r.handler.Execute(database.InsertUserURLWithoutCorrelationID, userID, shortURL, originalURL)
+func (r *PostgresRepository) Save(userID string, originalURL string, shortURL string) error {
+	err := r.handler.Execute(database.InsertURL, userID, nil, originalURL, shortURL)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == pgerrcode.UniqueViolation {
@@ -74,7 +74,7 @@ func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
 		paramLine = append(paramLine, obj.ShortURL)
 		paramArr = append(paramArr, paramLine)
 	}
-	err := r.handler.ExecuteBatch(database.InsertUserURL2, paramArr)
+	err := r.handler.ExecuteBatch(database.InsertURL, paramArr)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == pgerrcode.UniqueViolation {
@@ -85,26 +85,4 @@ func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
 		return err
 	}
 	return nil
-}
-
-func (r *PostgresRepository) ReadBatch(userID string) (*model.UserBatchURLs, error) {
-	if userID == "" {
-		return nil, errors.New("userID is empty")
-	}
-	rows, err := r.handler.Query(database.AllUserURLsWithCorrelationIDByUserID, userID)
-	if err != nil {
-		return nil, err
-	}
-	var res model.UserBatchURLs
-	res.UserID = userID
-
-	for rows.Next() {
-		var e model.Element
-		err := rows.Scan(&e.CorrelationID, &e.OriginalURL, &e.ShortURL)
-		if err != nil {
-			return nil, err
-		}
-		res.List = append(res.List, e)
-	}
-	return &res, nil
 }

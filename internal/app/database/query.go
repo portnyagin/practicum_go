@@ -1,10 +1,13 @@
 package database
 
-const InsertUserURLWithoutCorrelationID = "insert into user_urls2 (id, user_id, short_url, original_url) \n\t" +
-	"values ( nextval('seq_user_urls'), $1, $2,$3)\n"
+const InsertURL = "with first_insert as (\n" +
+	"    insert into urls(id, correlation_id, original_url,short_url) \n" +
+	"   values( nextval('seq_urls'), $2,$3,$4) \n" +
+	"   RETURNING id\n)" +
+	" insert into user_urls   ( url_id, user_id) \n" +
+	" select id, $1 from first_insert "
 
-const GetURLsByUserID2 = "select id, user_id, short_url, original_url from user_urls2 where user_id=$1"
-const InsertUserURL2 = "insert into user_urls2 (id, user_id,correlation_id, original_url, short_url) \n\t" +
-	"values ( nextval('seq_user_urls'), $1, $2,$3, $4)\n"
-
-const AllUserURLsWithCorrelationIDByUserID = "select correlation_id, original_url, short_url from user_urls2 where correlation_id is not null and user_id=$1"
+const GetURLsByUserID = "select id, user_id, original_url, short_url  \n" +
+	"from urls t1, user_urls t2 \n" +
+	"where \nt1.id  = t2.url_id \n" +
+	"and t2.user_id=$1"
