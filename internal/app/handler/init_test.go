@@ -32,7 +32,7 @@ func TestMain(m *testing.M) {
 	userService.On("SaveBatch", "user_id", d).Return("correlation1", "short_URL_1", nil)
 
 	userService.On("Save", "user_id", "original_URL", "short_URL").Return(nil)
-	userService.On("Save", "user_id", "bad_URL", "short_URL").Return(errors.New("duplicate key"))
+	userService.On("Save", "user_id", "bad_URL", "short_URL").Return(dto.ErrDuplicateKey)
 
 	handler = NewZipURLHandler(service)
 

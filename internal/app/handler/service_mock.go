@@ -44,7 +44,7 @@ func (s *UserServiceMock) Ping() bool {
 
 func (s *UserServiceMock) Save(userID string, originalURL string, shortURL string) error {
 	args := s.Called(userID, originalURL, shortURL)
-	if originalURL == "bad_url" {
+	if originalURL == "bad_URL" {
 		return args.Error(0)
 	} else {
 		return nil
