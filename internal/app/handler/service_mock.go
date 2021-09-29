@@ -31,8 +31,9 @@ type UserServiceMock struct {
 
 func (s *UserServiceMock) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	args := s.Called(userID)
-	// TODO:
-	return []dto.UserURLsDTO{}, args.Error(1)
+	var res []dto.UserURLsDTO
+	res = append(res, dto.UserURLsDTO{OriginalURL: args.String(0), ShortURL: args.String(0)})
+	return res, args.Error(1)
 }
 
 func (s *UserServiceMock) Ping() bool {
@@ -43,7 +44,11 @@ func (s *UserServiceMock) Ping() bool {
 
 func (s *UserServiceMock) Save(userID string, originalURL string, shortURL string) error {
 	args := s.Called(userID, originalURL, shortURL)
-	return args.Error(0)
+	if originalURL == "bad_url" {
+		return args.Error(0)
+	} else {
+		return nil
+	}
 }
 
 func (s *UserServiceMock) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
@@ -67,7 +72,7 @@ type CryptoServiceMock struct {
 
 func (s *CryptoServiceMock) Validate(token string) (bool, string) {
 	args := s.Called(token)
-	return args.Bool(0), args.String(1)
+	return args.Bool(0), token
 }
 
 func (s *CryptoServiceMock) GetNewUserToken() (string, string, error) {

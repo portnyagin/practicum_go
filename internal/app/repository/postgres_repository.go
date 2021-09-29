@@ -2,6 +2,8 @@ package repository
 
 import (
 	"errors"
+	"github.com/jackc/pgconn"
+	"github.com/jackc/pgerrcode"
 	"github.com/portnyagin/practicum_go/internal/app/database"
 	"github.com/portnyagin/practicum_go/internal/app/model"
 	"github.com/portnyagin/practicum_go/internal/app/repository/basedbhandler"
@@ -31,7 +33,7 @@ func (r *PostgresRepository) Ping() (bool, error) {
 }
 
 func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error) {
-	rows, err := r.handler.Query(database.GetURLsByUserID, userID)
+	rows, err := r.handler.Query(database.GetURLsByUserID2, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -48,7 +50,13 @@ func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error)
 }
 
 func (r *PostgresRepository) Save(userID string, shortURL string, originalURL string) error {
-	err := r.handler.Execute(database.InsertUserURL, userID, shortURL, originalURL)
+	err := r.handler.Execute(database.InsertUserURLWithoutCorrelationID, userID, shortURL, originalURL)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == pgerrcode.UniqueViolation {
+			return &model.UniqueViolation
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -67,6 +75,12 @@ func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
 		paramArr = append(paramArr, paramLine)
 	}
 	err := r.handler.ExecuteBatch(database.InsertUserURL2, paramArr)
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) {
+		if pgErr.Code == pgerrcode.UniqueViolation {
+			return &model.UniqueViolation
+		}
+	}
 	if err != nil {
 		return err
 	}

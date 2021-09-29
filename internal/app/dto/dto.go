@@ -1,5 +1,7 @@
 package dto
 
+import "errors"
+
 type ShortenResponseDTO struct {
 	Result string `json:"result"`
 }
@@ -22,3 +24,5 @@ type UserBatchResultDTO struct {
 	CorrelationID string `json:"correlation_id"`
 	ShortURL      string `json:"short_url"`
 }
+
+var ErrDuplicateKey = errors.New("no rows in result set")

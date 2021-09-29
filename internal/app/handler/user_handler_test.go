@@ -2,10 +2,9 @@ package handler
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
-	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -27,7 +26,7 @@ func TestZipURLHandler_GetUserURLsHandler(t *testing.T) {
 	}{
 		{name: "GET test #1 (Positive).",
 			args:  args{shortURLKey: "short_URL"},
-			wants: wants{responseCode: http.StatusTemporaryRedirect, resultResponse: "full_URL"},
+			wants: wants{responseCode: http.StatusOK, resultResponse: "full_URL"},
 		},
 	}
 	for _, tt := range tests {
@@ -35,17 +34,13 @@ func TestZipURLHandler_GetUserURLsHandler(t *testing.T) {
 			request := httptest.NewRequest("GET", "/user/urls", nil)
 			w := httptest.NewRecorder()
 			h := http.HandlerFunc(userHandler.GetUserURLsHandler)
-			request.AddCookie(&http.Cookie{Name: "token", Value: "dfdoskfojfpskf"})
+			request.AddCookie(&http.Cookie{Name: "token", Value: "user_id"})
 
 			h.ServeHTTP(w, request)
 			res := w.Result()
 
 			defer res.Body.Close()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
-
-			if res.StatusCode == tt.wants.responseCode {
-				assert.Equal(t, tt.wants.resultResponse, res.Header.Get("Location"))
-			}
 		})
 	}
 }
@@ -66,7 +61,7 @@ func TestUserHandler_getTokenCookie(t *testing.T) {
 	}{
 		{
 			name:    "Test #1 (getTokenCookie)",
-			args:    args{w: httptest.NewRecorder(), r: httptest.NewRequest("GET", "/user/urls", nil), userName: "userID1"},
+			args:    args{w: httptest.NewRecorder(), r: httptest.NewRequest("GET", "/user/urls", nil), userName: "user_id"},
 			wantErr: false,
 		},
 	}
@@ -127,17 +122,6 @@ func TestUserHandler_getTokenCookieHeader(t *testing.T) {
 	}
 }
 
-func TestUserHandler_easytest(t *testing.T) {
-	var req []dto.UserBatchDTO
-	//b := []byte ("[{\"correlation_id\":\"val1\"}]")
-	b := []byte("[{\"correlation_id\": \"correlation1\",\"original_url\": \"original_url_1\"}]")
-	if err := json.Unmarshal(b, &req); err != nil {
-		fmt.Println(err)
-		t.Error(err)
-	}
-	fmt.Println(req)
-}
-
 func TestUserHandler_PostShortenBatchHandler(t *testing.T) {
 	type args struct {
 		requestBody string
@@ -177,6 +161,57 @@ func TestUserHandler_PostShortenBatchHandler(t *testing.T) {
 			//if res.StatusCode == tt.wants.responseCode {
 			//	assert.Equal(t, tt.wants.resultResponse, res.Header.Get("Location"))
 			//}
+		})
+	}
+}
+
+func TestUserHandler_PostMethodHandler(t *testing.T) {
+	type args struct {
+		requestBody string
+	}
+	type wants struct {
+		responseCode   int
+		resultResponse string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{name: "POST test #1 (Negative). Empty body",
+			args:  args{requestBody: ""},
+			wants: wants{responseCode: http.StatusBadRequest, resultResponse: ""},
+		},
+		{name: "POST test #2 (Positive)",
+			args:  args{requestBody: "original_URL"},
+			wants: wants{responseCode: http.StatusCreated, resultResponse: "short_URL"},
+		},
+		{name: "POST test #3 (Negative)",
+			args:  args{requestBody: "bad_URL"},
+			wants: wants{responseCode: http.StatusConflict, resultResponse: ""},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest("POST", "/", strings.NewReader(tt.args.requestBody))
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(userHandler.PostMethodHandler)
+			h.ServeHTTP(w, request)
+			res := w.Result()
+			fmt.Println(res)
+
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
+			if res.StatusCode == http.StatusCreated {
+				responseBody, err := io.ReadAll(res.Body)
+
+				defer res.Body.Close()
+				if err != nil {
+					t.Errorf("Can't read response body, %e", err)
+				}
+				assert.Equal(t, tt.wants.resultResponse, string(responseBody), "Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
+
+			}
 		})
 	}
 }

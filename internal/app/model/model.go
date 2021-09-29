@@ -1,5 +1,7 @@
 package model
 
+import "github.com/jackc/pgerrcode"
+
 //type UserURLs struct {
 //	ShortURL    string
 //	OriginalURL string
@@ -39,3 +41,16 @@ type RepositoryV2 interface {
 	ReadBatch(userID string) (*UserBatchURLs, error)
 	Ping() (bool, error)
 }
+
+type DatabaseError struct {
+	Err  error
+	Code string
+}
+
+func (t *DatabaseError) Error() string {
+	return t.Err.Error()
+}
+
+var (
+	UniqueViolation DatabaseError = DatabaseError{Code: pgerrcode.UniqueViolation}
+)

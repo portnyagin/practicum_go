@@ -17,13 +17,12 @@ type PostgressRow struct {
 	Rows *pgx.Row
 }
 
-var ErrNotFound = pgx.ErrNoRows
-
 func (handler *PostgresqlHandler) Execute(statement string, args ...interface{}) error {
 	conn, err := handler.pool.Acquire(handler.ctx)
 	if err != nil {
 		return err
 	}
+
 	defer conn.Release()
 	if len(args) > 0 {
 		_, err = conn.Exec(handler.ctx, statement, args...)

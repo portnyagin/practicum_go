@@ -36,11 +36,6 @@ func (s *UserService) mapUserURLsDTO(src *model.UserURLs) (*dto.UserURLsDTO, err
 	return &dto.UserURLsDTO{ShortURL: src.ShortURL, OriginalURL: src.OriginalURL}, nil
 }
 
-func (s *UserService) mapDTOToUserBatch(src *dto.UserBatchDTO) (*model.UserBatchURLs, error) {
-
-	return nil, nil
-}
-
 //********** Mappers *****************************************************************/
 
 func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
@@ -53,17 +48,20 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	}
 	var resDtoList []dto.UserURLsDTO
 	for _, rec := range resArr {
-		dto, err := s.mapUserURLsDTO(&rec)
+		d, err := s.mapUserURLsDTO(&rec)
 		if err != nil {
 			return nil, errors.New("can't map result to UserURLsDTO")
 		}
-		resDtoList = append(resDtoList, *dto)
+		resDtoList = append(resDtoList, *d)
 	}
 	return resDtoList, nil
 }
 
 func (s *UserService) Save(userID string, originalURL string, shortURL string) error {
 	err := s.repository.Save(userID, shortURL, originalURL)
+	if errors.Is(err, &model.UniqueViolation) {
+		return dto.ErrDuplicateKey
+	}
 	if err != nil {
 		return err
 	}
@@ -89,6 +87,9 @@ func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto
 		resDTO = append(resDTO, dto.UserBatchResultDTO{CorrelationID: obj.CorrelationID, ShortURL: e.ShortURL})
 	}
 	err = s.repository.SaveBatch(res)
+	if errors.Is(err, &model.UniqueViolation) {
+		return nil, dto.ErrDuplicateKey
+	}
 	if err != nil {
 		return nil, err
 	}

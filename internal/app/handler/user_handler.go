@@ -93,7 +93,7 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 			panic("Can't serialize response")
 		}
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusCreated)
+		w.WriteHeader(http.StatusOK)
 		_, err = w.Write(responseBody)
 		if err != nil {
 			panic("Can't write response")
@@ -128,6 +128,10 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 	} else {
 		res, _ := z.service.ZipURL(string(b))
 		err = z.userService.Save(userID, string(b), res)
+		if errors.Is(err, dto.ErrDuplicateKey) {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -168,6 +172,10 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 		}
 
 		err = z.userService.Save(userID, req.URL, res)
+		if errors.Is(err, dto.ErrDuplicateKey) {
+			w.WriteHeader(http.StatusConflict)
+			return
+		}
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
@@ -208,6 +216,10 @@ func (z *UserHandler) PostShortenBatchHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 	resultDTO, err := z.userService.SaveBatch(userID, req)
+	if errors.Is(err, dto.ErrDuplicateKey) {
+		w.WriteHeader(http.StatusConflict)
+		return
+	}
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
