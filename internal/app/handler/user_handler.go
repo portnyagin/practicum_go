@@ -131,6 +131,10 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 		err = z.userService.SaveUserURL(userID, string(b), key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
+			_, err = w.Write([]byte(resUrl))
+			if err != nil {
+				panic("Can't write response")
+			}
 			return
 		}
 		if err != nil {
@@ -171,10 +175,20 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 			writeBadRequest(w)
 			return
 		}
+		resultDTO := dto.ShortenResponseDTO{Result: resURL}
+		responseBody, err := json.Marshal(resultDTO)
+		if err != nil {
+			panic("Can't serialize response")
+		}
+		w.Header().Set("Content-Type", "application/json")
 
 		err = z.userService.SaveUserURL(userID, req.URL, key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
+			_, err = w.Write(responseBody)
+			if err != nil {
+				panic("Can't write response")
+			}
 			return
 		}
 		if err != nil {
@@ -182,14 +196,6 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		resultDTO := dto.ShortenResponseDTO{Result: resURL}
-
-		responseBody, err := json.Marshal(resultDTO)
-		if err != nil {
-			panic("Can't serialize response")
-		}
-
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write(responseBody)
 		if err != nil {

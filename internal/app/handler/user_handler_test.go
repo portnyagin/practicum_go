@@ -186,7 +186,7 @@ func TestUserHandler_PostMethodHandler(t *testing.T) {
 			args:  args{requestBody: "original_URL"},
 			wants: wants{responseCode: http.StatusCreated, resultResponse: "short_URL"},
 		},
-		{name: "POST test #3 (Negative)",
+		{name: "POST test #4 (Negative)",
 			args:  args{requestBody: "bad_URL"},
 			wants: wants{responseCode: http.StatusConflict, resultResponse: ""},
 		},
