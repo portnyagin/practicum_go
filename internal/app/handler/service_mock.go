@@ -5,26 +5,6 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-type ServiceMock struct {
-	mock.Mock
-}
-
-func (s *ServiceMock) ZipURL(url string) (string, error) {
-	args := s.Called(url)
-	return args.String(0), args.Error(1)
-}
-
-func (s *ServiceMock) ZipURLv2(url string) (*dto.ShortenResponseDTO, error) {
-	args := s.Called(url)
-	return &dto.ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
-}
-
-func (s *ServiceMock) UnzipURL(key string) (string, error) {
-	args := s.Called(key)
-	return args.String(0), args.Error(1)
-}
-
-//----------------------------------------------------------------
 type UserServiceMock struct {
 	mock.Mock
 }
@@ -60,6 +40,11 @@ func (s *UserServiceMock) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([
 
 func (s *UserServiceMock) GetURLByShort(shortURL string) (string, error) {
 	args := s.Called(shortURL)
+	return args.String(0), args.Error(1)
+}
+
+func (s *UserServiceMock) ZipURL(url string) (string, error) {
+	args := s.Called(url)
 	return args.String(0), args.Error(1)
 }
 

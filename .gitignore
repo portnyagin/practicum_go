@@ -25,3 +25,5 @@ vendor/
 # data files
 internal/app/data
 *.dat
+/internal/app/arch/
+/internal/app/arch/

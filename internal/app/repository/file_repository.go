@@ -154,7 +154,3 @@ func (r *FileRepository) Save(key string, value string) error {
 	}
 	return err
 }
-
-func (r *FileRepository) Ping() (bool, error) {
-	return true, nil
-}

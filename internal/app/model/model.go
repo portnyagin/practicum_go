@@ -16,11 +16,10 @@ type UserURLs struct {
 
 type RepoRecord = string
 
-type Repository interface {
+type FileRepository interface {
 	Find(key string) (RepoRecord, error)
 	Save(key string, value string) error
 	FindByUser(key string) ([]UserURLs, error)
-	Ping() (bool, error)
 }
 
 type Element struct {
@@ -34,11 +33,11 @@ type UserBatchURLs struct {
 	List   []Element
 }
 
-type RepositoryV2 interface {
+type DBRepository interface {
 	FindByUser(userID string) ([]UserURLs, error)
 	FindByShort(shortURL string) (string, error)
 	Save(userID string, originalURL string, shortURL string) error
-	SaveBatch(UserBatchURLs) error
+	SaveBatch(data UserBatchURLs) error
 	Ping() (bool, error)
 }
 

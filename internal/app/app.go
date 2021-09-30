@@ -59,12 +59,12 @@ func Start() {
 		fmt.Println("can't init postgres repository", err)
 		return
 	}
-	service := service2.NewZipService(fileRepository, config.BaseURL)
+	//service := service2.NewZipService(fileRepository, config.BaseURL)
 	cs, _ := service2.NewCryptoService()
-	userService := service2.NewUserService(postgresRepository, config.BaseURL)
+	userService := service2.NewUserService(postgresRepository, fileRepository, config.BaseURL)
 	//zip, _ := service2.NewCompressService()
 	//h := handler.NewZipURLHandler(service)
-	uh := handler.NewUserHandler(userService, service, cs)
+	uh := handler.NewUserHandler(userService, cs)
 	router := chi.NewRouter()
 	router.Use(middleware.CleanPath)
 	router.Use(middleware.Logger)

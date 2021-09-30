@@ -1,17 +1,12 @@
 package service
 
 import (
-	"github.com/portnyagin/practicum_go/internal/app/repository"
 	"github.com/stretchr/testify/assert"
 	"net/url"
 	"testing"
 )
 
-func TestZipService_ZipURL(t *testing.T) {
-	repo := new(repository.RepositoryMock)
-	repo.On("Find", "short_URL").Return("full_URL")
-	repo.On("Find", "").Return("full_URL")
-	repo.On("Save", "full_URL").Return("short_URL")
+func TestUserService_ZipURL(t *testing.T) {
 
 	type want struct {
 		path   string
@@ -47,8 +42,8 @@ func TestZipService_ZipURL(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewZipService(repo, "http://localhost:8080/")
-			s.encode = repository.MockEncode
+			s := NewUserService(dbRepoMock, fileRepoMock, "http://localhost:8080/")
+			s.encode = MockEncode
 			res, err := s.ZipURL(tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ZipURL() error = %v, wantErr %v", err, tt.wantErr)
@@ -67,8 +62,9 @@ func TestZipService_ZipURL(t *testing.T) {
 	}
 }
 
-func TestZipService_UnzipURL(t *testing.T) {
-	repo := new(repository.RepositoryMock)
+/*
+func TestUserService_UnzipURL(t *testing.T) {
+	repo := new(FileRepositoryMock)
 	repo.On("Find", "short_URL").Return("full_URL", nil)
 	repo.On("Save", "full_URL").Return("short_URL", nil)
 
@@ -88,7 +84,7 @@ func TestZipService_UnzipURL(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			s := NewZipService(repo, "http://localhost:8080/")
+			s := NewUserService(dbRepoMock,fileRepoMock, "http://localhost:8080/")
 
 			got, err := s.UnzipURL(tt.key)
 			if (err != nil) != tt.wantErr {
@@ -101,3 +97,4 @@ func TestZipService_UnzipURL(t *testing.T) {
 		})
 	}
 }
+*/

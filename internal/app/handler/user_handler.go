@@ -17,19 +17,18 @@ type UserService interface {
 	Save(userID string, originalURL string, shortURL string) error
 	SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
 	GetURLByShort(shortURL string) (string, error)
+	ZipURL(url string) (string, error)
 	Ping() bool
 }
 
 type UserHandler struct {
 	userService   UserService
-	service       Service
 	cryptoService CryptoService
 }
 
-func NewUserHandler(userService UserService, service Service, cs CryptoService) *UserHandler {
+func NewUserHandler(userService UserService, cs CryptoService) *UserHandler {
 	var h UserHandler
 	h.userService = userService
-	h.service = service
 	h.cryptoService = cs
 
 	return &h
@@ -127,7 +126,7 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 		writeBadRequest(w)
 		return
 	} else {
-		res, _ := z.service.ZipURL(string(b))
+		res, _ := z.userService.ZipURL(string(b))
 		err = z.userService.Save(userID, string(b), res)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
@@ -166,7 +165,7 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 			writeBadRequest(w)
 			return
 		}
-		res, err := z.service.ZipURL(req.URL)
+		res, err := z.userService.ZipURL(req.URL)
 		if err != nil {
 			writeBadRequest(w)
 			return

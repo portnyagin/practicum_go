@@ -7,15 +7,19 @@ import (
 	"github.com/portnyagin/practicum_go/internal/app/model"
 )
 
+type EncodeFunc func(str string) string
+
 type UserService struct {
-	repository model.RepositoryV2
-	encode     EncodeFunc
-	baseURL    string
+	dbRepository   model.DBRepository
+	fileRepository model.FileRepository
+	encode         EncodeFunc
+	baseURL        string
 }
 
-func NewUserService(repo model.RepositoryV2, baseURL string) *UserService {
+func NewUserService(repoDB model.DBRepository, repoFile model.FileRepository, baseURL string) *UserService {
 	var s UserService
-	s.repository = repo
+	s.dbRepository = repoDB
+	s.fileRepository = repoFile
 	s.encode = func(str string) string {
 		return base64.StdEncoding.EncodeToString([]byte(str))
 	}
@@ -23,11 +27,15 @@ func NewUserService(repo model.RepositoryV2, baseURL string) *UserService {
 	return &s
 }
 
-func (s *UserService) zipURL(url string) (string, error) {
+func (s *UserService) ZipURL(url string) (string, error) {
 	if url == "" {
 		return "", errors.New("URL is empty")
 	}
 	key := s.encode(url)
+	err := s.fileRepository.Save(key, url)
+	if err != nil {
+		return "", err
+	}
 	return s.baseURL + key, nil
 }
 
@@ -42,7 +50,7 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	if userID == "" {
 		return nil, errors.New("user_id is empty")
 	}
-	resArr, err := s.repository.FindByUser(userID)
+	resArr, err := s.dbRepository.FindByUser(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +66,7 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 }
 
 func (s *UserService) Save(userID string, originalURL string, shortURL string) error {
-	err := s.repository.Save(userID, originalURL, shortURL)
+	err := s.dbRepository.Save(userID, originalURL, shortURL)
 	if errors.Is(err, &model.UniqueViolation) {
 		return dto.ErrDuplicateKey
 	}
@@ -79,14 +87,14 @@ func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto
 		var e model.Element
 		e.CorrelationID = obj.CorrelationID
 		e.OriginalURL = obj.OriginalURL
-		e.ShortURL, err = s.zipURL(obj.OriginalURL)
+		e.ShortURL, err = s.ZipURL(obj.OriginalURL)
 		if err != nil {
 			return nil, err
 		}
 		res.List = append(res.List, e)
 		resDTO = append(resDTO, dto.UserBatchResultDTO{CorrelationID: obj.CorrelationID, ShortURL: e.ShortURL})
 	}
-	err = s.repository.SaveBatch(res)
+	err = s.dbRepository.SaveBatch(res)
 	if errors.Is(err, &model.UniqueViolation) {
 		return nil, dto.ErrDuplicateKey
 	}
@@ -100,7 +108,7 @@ func (s *UserService) GetURLByShort(shortURL string) (string, error) {
 	if shortURL == "" {
 		return "", errors.New("shortURL is empty")
 	}
-	originalURL, err := s.repository.FindByShort(shortURL)
+	originalURL, err := s.dbRepository.FindByShort(shortURL)
 	if err != nil {
 		return "", err
 	}
@@ -109,6 +117,6 @@ func (s *UserService) GetURLByShort(shortURL string) (string, error) {
 }
 
 func (s *UserService) Ping() bool {
-	res, _ := s.repository.Ping()
+	res, _ := s.dbRepository.Ping()
 	return res
 }
