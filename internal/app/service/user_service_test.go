@@ -44,7 +44,7 @@ func TestUserService_ZipURL(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			s := NewUserService(dbRepoMock, fileRepoMock, "http://localhost:8080/")
 			s.encode = MockEncode
-			res, err := s.ZipURL(tt.url)
+			res, _, err := s.ZipURL(tt.url)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("ZipURL() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -66,7 +66,7 @@ func TestUserService_ZipURL(t *testing.T) {
 func TestUserService_UnzipURL(t *testing.T) {
 	repo := new(FileRepositoryMock)
 	repo.On("Find", "short_URL").Return("full_URL", nil)
-	repo.On("Save", "full_URL").Return("short_URL", nil)
+	repo.On("SaveUserURL", "full_URL").Return("short_URL", nil)
 
 	tests := []struct {
 		name    string

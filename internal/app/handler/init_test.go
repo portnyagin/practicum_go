@@ -13,10 +13,10 @@ var userHandler *UserHandler
 
 func TestMain(m *testing.M) {
 	userService = new(UserServiceMock)
-	userService.On("ZipURL", "full_URL").Return("short_URL", nil)
-	userService.On("ZipURL", "original_URL").Return("short_URL", nil)
-	userService.On("ZipURL", "bad_URL").Return("short_URL", nil)
-	userService.On("ZipURL", "").Return("", errors.New("URL is empty"))
+	userService.On("ZipURL", "full_URL").Return("short_URL", "short_URL", nil)
+	userService.On("ZipURL", "original_URL").Return("short_URL", "short_URL", nil)
+	userService.On("ZipURL", "bad_URL").Return("short_URL", "short_URL", nil)
+	userService.On("ZipURL", "").Return("", "", errors.New("URL is empty"))
 
 	userService.On("GetURLsByUser", "user_id").Return("url-for-user-1", nil)
 
@@ -24,8 +24,8 @@ func TestMain(m *testing.M) {
 	d = append(d, dto.UserBatchDTO{CorrelationID: "correlation1", OriginalURL: "original_URL_1"})
 	userService.On("SaveBatch", "user_id", d).Return("correlation1", "short_URL_1", nil)
 
-	userService.On("Save", "user_id", "original_URL", "short_URL").Return(nil)
-	userService.On("Save", "user_id", "bad_URL", "short_URL").Return(dto.ErrDuplicateKey)
+	userService.On("SaveUserURL", "user_id", "original_URL", "short_URL").Return(nil)
+	userService.On("SaveUserURL", "user_id", "bad_URL", "short_URL").Return(dto.ErrDuplicateKey)
 	userService.On("GetURLByShort", "short_URL").Return("original_URL", nil)
 
 	cryptoService := new(CryptoServiceMock)

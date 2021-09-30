@@ -22,7 +22,7 @@ func (s *UserServiceMock) Ping() bool {
 	return args.Bool(0)
 }
 
-func (s *UserServiceMock) Save(userID string, originalURL string, shortURL string) error {
+func (s *UserServiceMock) SaveUserURL(userID string, originalURL string, shortURL string) error {
 	args := s.Called(userID, originalURL, shortURL)
 	if originalURL == "bad_URL" {
 		return args.Error(0)
@@ -43,9 +43,9 @@ func (s *UserServiceMock) GetURLByShort(shortURL string) (string, error) {
 	return args.String(0), args.Error(1)
 }
 
-func (s *UserServiceMock) ZipURL(url string) (string, error) {
+func (s *UserServiceMock) ZipURL(url string) (string, string, error) {
 	args := s.Called(url)
-	return args.String(0), args.Error(1)
+	return args.String(0), args.String(1), args.Error(2)
 }
 
 //----------------------------------------------------------------

@@ -48,7 +48,6 @@ func TestZipURLHandler_GetUserURLsHandler(t *testing.T) {
 }
 
 func TestUserHandler_getTokenCookie(t *testing.T) {
-
 	type args struct {
 		w        http.ResponseWriter
 		r        *http.Request
@@ -82,7 +81,6 @@ func TestUserHandler_getTokenCookie(t *testing.T) {
 }
 
 func TestUserHandler_getTokenCookieHeader(t *testing.T) {
-
 	type args struct {
 		w          http.ResponseWriter
 		r          *http.Request

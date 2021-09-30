@@ -14,10 +14,10 @@ type CryptoService interface {
 
 type UserService interface {
 	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
-	Save(userID string, originalURL string, shortURL string) error
+	SaveUserURL(userID string, originalURL string, shortURL string) error
 	SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
 	GetURLByShort(shortURL string) (string, error)
-	ZipURL(url string) (string, error)
+	ZipURL(url string) (string, string, error)
 	Ping() bool
 }
 
@@ -126,8 +126,9 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 		writeBadRequest(w)
 		return
 	} else {
-		res, _ := z.userService.ZipURL(string(b))
-		err = z.userService.Save(userID, string(b), res)
+		resUrl, key, _ := z.userService.ZipURL(string(b))
+
+		err = z.userService.SaveUserURL(userID, string(b), key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
 			return
@@ -137,7 +138,7 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(res))
+		_, err = w.Write([]byte(resUrl))
 		if err != nil {
 			panic("Can't write response")
 		}
@@ -165,13 +166,13 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 			writeBadRequest(w)
 			return
 		}
-		res, err := z.userService.ZipURL(req.URL)
+		resURL, key, err := z.userService.ZipURL(req.URL)
 		if err != nil {
 			writeBadRequest(w)
 			return
 		}
 
-		err = z.userService.Save(userID, req.URL, res)
+		err = z.userService.SaveUserURL(userID, req.URL, key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
 			return
@@ -181,7 +182,7 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 			return
 		}
 
-		resultDTO := dto.ShortenResponseDTO{Result: res}
+		resultDTO := dto.ShortenResponseDTO{Result: resURL}
 
 		responseBody, err := json.Marshal(resultDTO)
 		if err != nil {

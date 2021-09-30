@@ -27,16 +27,12 @@ func NewUserService(repoDB model.DBRepository, repoFile model.FileRepository, ba
 	return &s
 }
 
-func (s *UserService) ZipURL(url string) (string, error) {
+func (s *UserService) ZipURL(url string) (string, string, error) {
 	if url == "" {
-		return "", errors.New("URL is empty")
+		return "", "", errors.New("URL is empty")
 	}
 	key := s.encode(url)
-	err := s.fileRepository.Save(key, url)
-	if err != nil {
-		return "", err
-	}
-	return s.baseURL + key, nil
+	return s.baseURL + key, key, nil
 }
 
 //********** Mappers *****************************************************************/
@@ -65,8 +61,13 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	return resDtoList, nil
 }
 
-func (s *UserService) Save(userID string, originalURL string, shortURL string) error {
-	err := s.dbRepository.Save(userID, originalURL, shortURL)
+func (s *UserService) SaveUserURL(userID string, originalURL string, shortURL string) error {
+	err := s.fileRepository.Save(shortURL, originalURL)
+	if err != nil {
+		return err
+	}
+
+	err = s.dbRepository.Save(userID, originalURL, shortURL)
 	if errors.Is(err, &model.UniqueViolation) {
 		return dto.ErrDuplicateKey
 	}
@@ -85,14 +86,15 @@ func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto
 	res.UserID = userID
 	for _, obj := range srcDTO {
 		var e model.Element
+		var fullShortURL string
 		e.CorrelationID = obj.CorrelationID
 		e.OriginalURL = obj.OriginalURL
-		e.ShortURL, err = s.ZipURL(obj.OriginalURL)
+		fullShortURL, e.ShortURL, err = s.ZipURL(obj.OriginalURL)
 		if err != nil {
 			return nil, err
 		}
 		res.List = append(res.List, e)
-		resDTO = append(resDTO, dto.UserBatchResultDTO{CorrelationID: obj.CorrelationID, ShortURL: e.ShortURL})
+		resDTO = append(resDTO, dto.UserBatchResultDTO{CorrelationID: obj.CorrelationID, ShortURL: fullShortURL})
 	}
 	err = s.dbRepository.SaveBatch(res)
 	if errors.Is(err, &model.UniqueViolation) {
