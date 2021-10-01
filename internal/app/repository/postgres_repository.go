@@ -41,7 +41,7 @@ func (r *PostgresRepository) FindByUser(ctx context.Context, userID string) ([]m
 	var resArr []model.UserURLs
 	for rows.Next() {
 		var rec model.UserURLs
-		err := rows.Scan(&rec.ID, &rec.UserID, &rec.ShortURL, &rec.OriginalURL)
+		err := rows.Scan(&rec.ID, &rec.UserID, &rec.OriginalURL, &rec.ShortURL)
 		resArr = append(resArr, rec)
 		if err != nil {
 			return nil, err
