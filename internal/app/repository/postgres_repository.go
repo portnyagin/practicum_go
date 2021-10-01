@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"context"
 	"errors"
 	"github.com/jackc/pgconn"
 	"github.com/jackc/pgerrcode"
@@ -19,8 +20,8 @@ func NewPostgresRepository(handler basedbhandler.DBHandler) (*PostgresRepository
 	return &repo, nil
 }
 
-func (r *PostgresRepository) Ping() (bool, error) {
-	row, err := r.handler.QueryRow("select 10")
+func (r *PostgresRepository) Ping(ctx context.Context) (bool, error) {
+	row, err := r.handler.QueryRow(ctx, "select 10")
 	if err != nil {
 		return false, err
 	}
@@ -32,8 +33,8 @@ func (r *PostgresRepository) Ping() (bool, error) {
 	return true, nil
 }
 
-func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error) {
-	rows, err := r.handler.Query(database.GetURLsByUserID, userID)
+func (r *PostgresRepository) FindByUser(ctx context.Context, userID string) ([]model.UserURLs, error) {
+	rows, err := r.handler.Query(ctx, database.GetURLsByUserID, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +50,8 @@ func (r *PostgresRepository) FindByUser(userID string) ([]model.UserURLs, error)
 	return resArr, nil
 }
 
-func (r *PostgresRepository) Save(userID string, originalURL string, shortURL string) error {
-	err := r.handler.Execute(database.InsertURL, userID, nil, originalURL, shortURL)
+func (r *PostgresRepository) Save(ctx context.Context, userID string, originalURL string, shortURL string) error {
+	err := r.handler.Execute(ctx, database.InsertURL, userID, nil, originalURL, shortURL)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == pgerrcode.UniqueViolation {
@@ -63,7 +64,7 @@ func (r *PostgresRepository) Save(userID string, originalURL string, shortURL st
 	return nil
 }
 
-func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
+func (r *PostgresRepository) SaveBatch(ctx context.Context, src model.UserBatchURLs) error {
 	// TODO
 	var paramArr [][]interface{}
 	for _, obj := range src.List {
@@ -74,7 +75,7 @@ func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
 		paramLine = append(paramLine, obj.ShortURL)
 		paramArr = append(paramArr, paramLine)
 	}
-	err := r.handler.ExecuteBatch(database.InsertURL, paramArr)
+	err := r.handler.ExecuteBatch(ctx, database.InsertURL, paramArr)
 	var pgErr *pgconn.PgError
 	if errors.As(err, &pgErr) {
 		if pgErr.Code == pgerrcode.UniqueViolation {
@@ -87,8 +88,8 @@ func (r *PostgresRepository) SaveBatch(src model.UserBatchURLs) error {
 	return nil
 }
 
-func (r *PostgresRepository) FindByShort(shortURL string) (string, error) {
-	row, err := r.handler.QueryRow(database.GetOriginalURLByShort, shortURL)
+func (r *PostgresRepository) FindByShort(ctx context.Context, shortURL string) (string, error) {
+	row, err := r.handler.QueryRow(ctx, database.GetOriginalURLByShort, shortURL)
 	if err != nil {
 		return "", err
 	}

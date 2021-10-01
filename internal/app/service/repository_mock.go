@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"github.com/portnyagin/practicum_go/internal/app/model"
 	"github.com/stretchr/testify/mock"
 )
@@ -33,28 +34,28 @@ type DBRepositoryMock struct {
 	mock.Mock
 }
 
-func (r *DBRepositoryMock) FindByUser(userID string) ([]model.UserURLs, error) {
+func (r *DBRepositoryMock) FindByUser(ctx context.Context, userID string) ([]model.UserURLs, error) {
 	args := r.Called(userID)
 	res := model.UserURLs{ID: 1, UserID: userID, OriginalURL: args.String(0), ShortURL: args.String(1)}
 	return []model.UserURLs{res}, args.Error(2)
 }
 
-func (r *DBRepositoryMock) FindByShort(shortURL string) (string, error) {
+func (r *DBRepositoryMock) FindByShort(ctx context.Context, shortURL string) (string, error) {
 	args := r.Called(shortURL)
 	return args.String(0), args.Error(1)
 }
 
-func (r *DBRepositoryMock) Save(userID string, originalURL string, shortURL string) error {
+func (r *DBRepositoryMock) Save(ctx context.Context, userID string, originalURL string, shortURL string) error {
 	args := r.Called(userID, originalURL, shortURL)
 	return args.Error(0)
 }
 
-func (r *DBRepositoryMock) SaveBatch(data model.UserBatchURLs) error {
+func (r *DBRepositoryMock) SaveBatch(ctx context.Context, data model.UserBatchURLs) error {
 	args := r.Called(data)
 	return args.Error(0)
 }
 
-func (r *DBRepositoryMock) Ping() (bool, error) {
+func (r *DBRepositoryMock) Ping(ctx context.Context) (bool, error) {
 	args := r.Called()
 	return args.Bool(0), args.Error(1)
 }

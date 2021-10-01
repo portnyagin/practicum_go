@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
@@ -42,11 +43,11 @@ func (s *UserService) mapUserURLsDTO(src *model.UserURLs) (*dto.UserURLsDTO, err
 
 //********** Mappers *****************************************************************/
 
-func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
+func (s *UserService) GetURLsByUser(ctx context.Context, userID string) ([]dto.UserURLsDTO, error) {
 	if userID == "" {
 		return nil, errors.New("user_id is empty")
 	}
-	resArr, err := s.dbRepository.FindByUser(userID)
+	resArr, err := s.dbRepository.FindByUser(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -61,13 +62,13 @@ func (s *UserService) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
 	return resDtoList, nil
 }
 
-func (s *UserService) SaveUserURL(userID string, originalURL string, shortURL string) error {
+func (s *UserService) SaveUserURL(ctx context.Context, userID string, originalURL string, shortURL string) error {
 	err := s.fileRepository.Save(shortURL, originalURL)
 	if err != nil {
 		return err
 	}
 
-	err = s.dbRepository.Save(userID, originalURL, shortURL)
+	err = s.dbRepository.Save(ctx, userID, originalURL, shortURL)
 	if errors.Is(err, &model.UniqueViolation) {
 		return dto.ErrDuplicateKey
 	}
@@ -77,7 +78,7 @@ func (s *UserService) SaveUserURL(userID string, originalURL string, shortURL st
 	return nil
 }
 
-func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
+func (s *UserService) SaveBatch(ctx context.Context, userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
 	var (
 		res    model.UserBatchURLs
 		err    error
@@ -96,7 +97,7 @@ func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto
 		res.List = append(res.List, e)
 		resDTO = append(resDTO, dto.UserBatchResultDTO{CorrelationID: obj.CorrelationID, ShortURL: fullShortURL})
 	}
-	err = s.dbRepository.SaveBatch(res)
+	err = s.dbRepository.SaveBatch(ctx, res)
 	if errors.Is(err, &model.UniqueViolation) {
 		return nil, dto.ErrDuplicateKey
 	}
@@ -106,11 +107,11 @@ func (s *UserService) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto
 	return resDTO, nil
 }
 
-func (s *UserService) GetURLByShort(shortURL string) (string, error) {
+func (s *UserService) GetURLByShort(ctx context.Context, shortURL string) (string, error) {
 	if shortURL == "" {
 		return "", errors.New("shortURL is empty")
 	}
-	originalURL, err := s.dbRepository.FindByShort(shortURL)
+	originalURL, err := s.dbRepository.FindByShort(ctx, shortURL)
 	if err != nil {
 		return "", err
 	}
@@ -118,7 +119,7 @@ func (s *UserService) GetURLByShort(shortURL string) (string, error) {
 	return originalURL, nil
 }
 
-func (s *UserService) Ping() bool {
-	res, _ := s.dbRepository.Ping()
+func (s *UserService) Ping(ctx context.Context) bool {
+	res, _ := s.dbRepository.Ping(ctx)
 	return res
 }

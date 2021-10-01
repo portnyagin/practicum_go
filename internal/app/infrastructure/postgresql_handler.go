@@ -10,31 +10,31 @@ import (
 
 type PostgresqlHandler struct {
 	pool *pgxpool.Pool
-	ctx  context.Context
+	//ctx  context.Context
 }
 
 type PostgressRow struct {
 	Rows *pgx.Row
 }
 
-func (handler *PostgresqlHandler) Execute(statement string, args ...interface{}) error {
-	conn, err := handler.pool.Acquire(handler.ctx)
+func (handler *PostgresqlHandler) Execute(ctx context.Context, statement string, args ...interface{}) error {
+	conn, err := handler.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
 
 	defer conn.Release()
 	if len(args) > 0 {
-		_, err = conn.Exec(handler.ctx, statement, args...)
+		_, err = conn.Exec(ctx, statement, args...)
 	} else {
-		_, err = conn.Exec(handler.ctx, statement)
+		_, err = conn.Exec(ctx, statement)
 	}
 
 	return err
 }
 
-func (handler *PostgresqlHandler) ExecuteBatch(statement string, args [][]interface{}) error {
-	conn, err := handler.pool.Acquire(handler.ctx)
+func (handler *PostgresqlHandler) ExecuteBatch(ctx context.Context, statement string, args [][]interface{}) error {
+	conn, err := handler.pool.Acquire(ctx)
 	if err != nil {
 		return err
 	}
@@ -57,36 +57,36 @@ func (handler *PostgresqlHandler) ExecuteBatch(statement string, args [][]interf
 	return nil
 }
 
-func (handler *PostgresqlHandler) QueryRow(statement string, args ...interface{}) (basedbhandler.Row, error) {
+func (handler *PostgresqlHandler) QueryRow(ctx context.Context, statement string, args ...interface{}) (basedbhandler.Row, error) {
 	var row pgx.Row
-	conn, err := handler.pool.Acquire(handler.ctx)
+	conn, err := handler.pool.Acquire(ctx)
 	if err != nil {
 		return nil, err
 	}
 	defer conn.Release()
 
 	if len(args) > 0 {
-		row = conn.QueryRow(handler.ctx, statement, args...)
+		row = conn.QueryRow(ctx, statement, args...)
 	} else {
-		row = conn.QueryRow(handler.ctx, statement)
+		row = conn.QueryRow(ctx, statement)
 	}
 
 	return row, nil
 }
 
-func (handler *PostgresqlHandler) Query(statement string, args ...interface{}) (basedbhandler.Rows, error) {
+func (handler *PostgresqlHandler) Query(ctx context.Context, statement string, args ...interface{}) (basedbhandler.Rows, error) {
 	var rows pgx.Rows
 
-	conn, err := handler.pool.Acquire(handler.ctx)
+	conn, err := handler.pool.Acquire(ctx)
 	defer conn.Release()
 	if err != nil {
 		return nil, err
 	}
 
 	if len(args) > 0 {
-		rows, err = conn.Query(handler.ctx, statement, args...)
+		rows, err = conn.Query(ctx, statement, args...)
 	} else {
-		rows, err = conn.Query(handler.ctx, statement)
+		rows, err = conn.Query(ctx, statement)
 	}
 	if err != nil {
 		return nil, err
@@ -108,12 +108,11 @@ func NewPostgresqlHandler(ctx context.Context, dataSource string) (*PostgresqlHa
 	if err != nil {
 		return nil, err
 	}
-	pool, err := pgxpool.ConnectConfig(context.Background(), poolConfig)
+	pool, err := pgxpool.ConnectConfig(ctx, poolConfig)
 	if err != nil {
 		return nil, err
 	}
 	postgresqlHandler := new(PostgresqlHandler)
-	postgresqlHandler.ctx = ctx
 	postgresqlHandler.pool = pool
 	//baseHandler.ErrNotFound = pgx.ErrNoRows
 	return postgresqlHandler, nil

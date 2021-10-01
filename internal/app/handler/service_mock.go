@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/stretchr/testify/mock"
 )
@@ -9,20 +10,20 @@ type UserServiceMock struct {
 	mock.Mock
 }
 
-func (s *UserServiceMock) GetURLsByUser(userID string) ([]dto.UserURLsDTO, error) {
+func (s *UserServiceMock) GetURLsByUser(ctx context.Context, userID string) ([]dto.UserURLsDTO, error) {
 	args := s.Called(userID)
 	var res []dto.UserURLsDTO
 	res = append(res, dto.UserURLsDTO{OriginalURL: args.String(0), ShortURL: args.String(0)})
 	return res, args.Error(1)
 }
 
-func (s *UserServiceMock) Ping() bool {
+func (s *UserServiceMock) Ping(ctx context.Context) bool {
 	args := s.Called()
 	// TODO:
 	return args.Bool(0)
 }
 
-func (s *UserServiceMock) SaveUserURL(userID string, originalURL string, shortURL string) error {
+func (s *UserServiceMock) SaveUserURL(ctx context.Context, userID string, originalURL string, shortURL string) error {
 	args := s.Called(userID, originalURL, shortURL)
 	if originalURL == "bad_URL" {
 		return args.Error(0)
@@ -31,14 +32,14 @@ func (s *UserServiceMock) SaveUserURL(userID string, originalURL string, shortUR
 	}
 }
 
-func (s *UserServiceMock) SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
+func (s *UserServiceMock) SaveBatch(ctx context.Context, userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error) {
 	args := s.Called(userID, srcDTO)
 	var res []dto.UserBatchResultDTO
 	res = append(res, dto.UserBatchResultDTO{CorrelationID: args.String(0), ShortURL: args.String(1)})
 	return res, args.Error(2)
 }
 
-func (s *UserServiceMock) GetURLByShort(shortURL string) (string, error) {
+func (s *UserServiceMock) GetURLByShort(ctx context.Context, shortURL string) (string, error) {
 	args := s.Called(shortURL)
 	return args.String(0), args.Error(1)
 }

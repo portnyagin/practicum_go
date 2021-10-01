@@ -1,6 +1,9 @@
 package model
 
-import "github.com/jackc/pgerrcode"
+import (
+	"context"
+	"github.com/jackc/pgerrcode"
+)
 
 type UserURLs struct {
 	ID          int
@@ -29,11 +32,11 @@ type UserBatchURLs struct {
 }
 
 type DBRepository interface {
-	FindByUser(userID string) ([]UserURLs, error)
-	FindByShort(shortURL string) (string, error)
-	Save(userID string, originalURL string, shortURL string) error
-	SaveBatch(data UserBatchURLs) error
-	Ping() (bool, error)
+	FindByUser(ctx context.Context, userID string) ([]UserURLs, error)
+	FindByShort(ctx context.Context, shortURL string) (string, error)
+	Save(ctx context.Context, userID string, originalURL string, shortURL string) error
+	SaveBatch(ctx context.Context, data UserBatchURLs) error
+	Ping(ctx context.Context) (bool, error)
 }
 
 type DatabaseError struct {

@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
@@ -13,12 +14,12 @@ type CryptoService interface {
 }
 
 type UserService interface {
-	GetURLsByUser(userID string) ([]dto.UserURLsDTO, error)
-	SaveUserURL(userID string, originalURL string, shortURL string) error
-	SaveBatch(userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
-	GetURLByShort(shortURL string) (string, error)
+	GetURLsByUser(ctx context.Context, userID string) ([]dto.UserURLsDTO, error)
+	SaveUserURL(ctx context.Context, userID string, originalURL string, shortURL string) error
+	SaveBatch(ctx context.Context, userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
+	GetURLByShort(ctx context.Context, shortURL string) (string, error)
 	ZipURL(url string) (string, string, error)
-	Ping() bool
+	Ping(ctx context.Context) bool
 }
 
 type UserHandler struct {
@@ -77,7 +78,8 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	res, err := z.userService.GetURLsByUser(userID)
+
+	res, err := z.userService.GetURLsByUser(r.Context(), userID)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
@@ -102,7 +104,7 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (z *UserHandler) PingHandler(w http.ResponseWriter, r *http.Request) {
-	if !z.userService.Ping() {
+	if !z.userService.Ping(r.Context()) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
@@ -128,7 +130,7 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 	} else {
 		resURL, key, _ := z.userService.ZipURL(string(b))
 
-		err = z.userService.SaveUserURL(userID, string(b), key)
+		err = z.userService.SaveUserURL(r.Context(), userID, string(b), key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
 			_, err = w.Write([]byte(resURL))
@@ -182,7 +184,7 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 		}
 		w.Header().Set("Content-Type", "application/json")
 
-		err = z.userService.SaveUserURL(userID, req.URL, key)
+		err = z.userService.SaveUserURL(r.Context(), userID, req.URL, key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
 			_, err = w.Write(responseBody)
@@ -222,7 +224,7 @@ func (z *UserHandler) PostShortenBatchHandler(w http.ResponseWriter, r *http.Req
 		writeBadRequest(w)
 		return
 	}
-	resultDTO, err := z.userService.SaveBatch(userID, req)
+	resultDTO, err := z.userService.SaveBatch(r.Context(), userID, req)
 	if errors.Is(err, dto.ErrDuplicateKey) {
 		w.WriteHeader(http.StatusConflict)
 		return
@@ -252,7 +254,7 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		key := r.RequestURI[1:]
-		res, err := z.userService.GetURLByShort(key)
+		res, err := z.userService.GetURLByShort(r.Context(), key)
 		if err != nil {
 			writeBadRequest(w)
 			return
