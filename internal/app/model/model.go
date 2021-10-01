@@ -2,11 +2,6 @@ package model
 
 import "github.com/jackc/pgerrcode"
 
-//type UserURLs struct {
-//	ShortURL    string
-//	OriginalURL string
-//}
-
 type UserURLs struct {
 	ID          int
 	UserID      string

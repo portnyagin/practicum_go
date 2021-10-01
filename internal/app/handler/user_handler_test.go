@@ -158,9 +158,6 @@ func TestUserHandler_PostShortenBatchHandler(t *testing.T) {
 			defer res.Body.Close()
 			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
 
-			//if res.StatusCode == tt.wants.responseCode {
-			//	assert.Equal(t, tt.wants.resultResponse, res.Header.Get("Location"))
-			//}
 		})
 	}
 }

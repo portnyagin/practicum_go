@@ -35,7 +35,7 @@ type DBRepositoryMock struct {
 
 func (r *DBRepositoryMock) FindByUser(userID string) ([]model.UserURLs, error) {
 	args := r.Called(userID)
-	var res model.UserURLs = model.UserURLs{ID: 1, UserID: userID, OriginalURL: args.String(0), ShortURL: args.String(1)}
+	res := model.UserURLs{ID: 1, UserID: userID, OriginalURL: args.String(0), ShortURL: args.String(1)}
 	return []model.UserURLs{res}, args.Error(2)
 }
 

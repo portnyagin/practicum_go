@@ -126,12 +126,12 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 		writeBadRequest(w)
 		return
 	} else {
-		resUrl, key, _ := z.userService.ZipURL(string(b))
+		resURL, key, _ := z.userService.ZipURL(string(b))
 
 		err = z.userService.SaveUserURL(userID, string(b), key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
 			w.WriteHeader(http.StatusConflict)
-			_, err = w.Write([]byte(resUrl))
+			_, err = w.Write([]byte(resURL))
 			if err != nil {
 				panic("Can't write response")
 			}
@@ -142,7 +142,7 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 			return
 		}
 		w.WriteHeader(http.StatusCreated)
-		_, err = w.Write([]byte(resUrl))
+		_, err = w.Write([]byte(resURL))
 		if err != nil {
 			panic("Can't write response")
 		}

@@ -9,12 +9,6 @@ import (
 	"time"
 )
 
-//
-//type CryptoService interface {
-//	Validate (token string) bool
-//	GetToken () (string, error)
-//}
-
 type CryptoServiceImpl struct {
 	key    []byte
 	aesgcm cipher.AEAD
