@@ -3,7 +3,6 @@ package custommiddleware
 import (
 	"compress/gzip"
 	"io"
-	"log"
 	"net/http"
 	"strings"
 )
@@ -28,7 +27,7 @@ func Compress(next http.Handler) http.Handler {
 		if err != nil {
 			_, err = io.WriteString(w, err.Error())
 			if err != nil {
-				log.Fatal(err)
+				panic(err)
 			}
 			w.WriteHeader(http.StatusInternalServerError)
 			return

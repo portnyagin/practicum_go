@@ -10,7 +10,6 @@ import (
 
 type PostgresqlHandler struct {
 	pool *pgxpool.Pool
-	//ctx  context.Context
 }
 
 type PostgressRow struct {
