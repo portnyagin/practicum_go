@@ -38,7 +38,7 @@ func (s *UserService) ZipURL(url string) (string, string, error) {
 
 //********** Mappers *****************************************************************/
 func (s *UserService) mapUserURLsDTO(src *model.UserURLs) (*dto.UserURLsDTO, error) {
-	return &dto.UserURLsDTO{ShortURL: src.ShortURL, OriginalURL: src.OriginalURL}, nil
+	return &dto.UserURLsDTO{ShortURL: s.baseURL + src.ShortURL, OriginalURL: src.OriginalURL}, nil
 }
 
 //********** Mappers *****************************************************************/
