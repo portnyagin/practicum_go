@@ -1,58 +1,168 @@
-package app
+package handler
 
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
+	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"strings"
 	"testing"
 )
 
-type ServiceMock struct {
-	mock.Mock
+func TestZipURLHandler_GetUserURLsHandler(t *testing.T) {
+	type args struct {
+		shortURLKey string
+	}
+	type wants struct {
+		responseCode   int
+		resultResponse string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{
+		{name: "GET test #1 (Positive).",
+			args:  args{shortURLKey: "short_URL"},
+			wants: wants{responseCode: http.StatusOK, resultResponse: "full_URL"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest("GET", "/user/urls", nil)
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(userHandler.GetUserURLsHandler)
+			request.AddCookie(&http.Cookie{Name: "token", Value: "user_id"})
+
+			h.ServeHTTP(w, request)
+			res := w.Result()
+
+			defer res.Body.Close()
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+		})
+	}
 }
 
-func (s *ServiceMock) ZipURL(url string) (string, error) {
-	args := s.Called(url)
-	return args.String(0), args.Error(1)
+func TestUserHandler_getTokenCookie(t *testing.T) {
+	type args struct {
+		w        http.ResponseWriter
+		r        *http.Request
+		userName string
+	}
+	tests := []struct {
+		name string
+		//fields  fields
+		args args
+		//want    *http.Cookie
+		wantErr bool
+	}{
+		{
+			name:    "Test #1 (getTokenCookie)",
+			args:    args{w: httptest.NewRecorder(), r: httptest.NewRequest("GET", "/user/urls", nil), userName: "user_id"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := userHandler.getTokenCookie(tt.args.w, tt.args.r)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getTokenCookie() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			// check returned cookie (name and value)
+			assert.Equal(t, tt.args.userName, got, "Expected cookie.name is %s, got %s", got, tt.args.userName)
+		})
+	}
 }
 
-func (s *ServiceMock) ZipURLv2(url string) (*ShortenResponseDTO, error) {
-	args := s.Called(url)
-	return &ShortenResponseDTO{Result: args.String(0)}, args.Error(1)
+func TestUserHandler_getTokenCookieHeader(t *testing.T) {
+	type args struct {
+		w          http.ResponseWriter
+		r          *http.Request
+		cookieName string
+		cookieVal  string
+	}
+	tests := []struct {
+		name string
+		//fields  fields
+		args args
+		//want    *http.Cookie
+		wantErr bool
+	}{
+		{
+			name:    "Test #2 (getTokenCookie. Check Header)",
+			args:    args{w: httptest.NewRecorder(), r: httptest.NewRequest("GET", "/user/urls", nil), cookieName: "token", cookieVal: "valid_user_Token"},
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := userHandler.getTokenCookie(tt.args.w, tt.args.r)
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("getTokenCookie() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			fmt.Println(got)
+			http.SetCookie(tt.args.w, &http.Cookie{Name: "some Namr", Value: "Somne value"})
+			http.SetCookie(tt.args.w, &http.Cookie{Name: "some Namr", Value: "Somne value2"})
+			http.SetCookie(tt.args.w, &http.Cookie{Name: "some Namr", Value: "Somne value3"})
+
+			// check w for cookie
+			tmp := tt.args.w.Header().Get("Set-Cookie")
+			assert.NotEmpty(t, tmp, "Can't got cookie from response")
+			parsedCookie := strings.Split(tmp, "=")
+			assert.ElementsMatch(t, parsedCookie, []string{tt.args.cookieName, tt.args.cookieVal}, "ParsedCookie does not match expected")
+		})
+	}
 }
 
-func (s *ServiceMock) UnzipURL(key string) (string, error) {
-	args := s.Called(key)
-	return args.String(0), args.Error(1)
+func TestUserHandler_PostShortenBatchHandler(t *testing.T) {
+	type args struct {
+		requestBody string
+	}
+	type wants struct {
+		responseCode int
+		contentType  string
+		responseBody string
+	}
+	tests := []struct {
+		name  string
+		wants wants
+		args  args
+	}{
+		{name: "ShortenBatchHandler test#1",
+			wants: wants{
+				responseCode: http.StatusCreated,
+				contentType:  "application/json",
+				responseBody: "",
+			},
+			args: args{requestBody: "[{\"correlation_id\": \"correlation1\",\"original_URL\": \"original_URL_1\"}]"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			requestBody := []byte(tt.args.requestBody)
+
+			request := httptest.NewRequest("POST", "/api/shorten/batch", bytes.NewReader(requestBody))
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(userHandler.PostShortenBatchHandler)
+
+			h.ServeHTTP(w, request)
+			res := w.Result()
+			defer res.Body.Close()
+			assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+
+		})
+	}
 }
 
-var service *ServiceMock
-var handler *ZipURLHandler
-
-func TestMain(m *testing.M) {
-	service = new(ServiceMock)
-	service.On("ZipURL", "full_URL").Return("short_URL", nil)
-	service.On("ZipURL", "").Return("", errors.New("URL is empty"))
-
-	service.On("ZipURLv2", "full_URL").Return("short_URL", nil)
-	service.On("ZipURLv2", "").Return("short_URL", errors.New("URL is empty"))
-
-	service.On("UnzipURL", "short_URL").Return("full_URL", nil)
-	service.On("UnzipURL", "xxx").Return("", errors.New("key not found"))
-
-	handler = NewZipURLHandler(service)
-	os.Exit(m.Run())
-}
-
-func TestZipURLHandler_postMethodHandler(t *testing.T) {
+func TestUserHandler_PostMethodHandler(t *testing.T) {
 	type args struct {
 		requestBody string
 	}
@@ -70,15 +180,19 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: ""},
 		},
 		{name: "POST test #2 (Positive)",
-			args:  args{requestBody: "full_URL"},
+			args:  args{requestBody: "original_URL"},
 			wants: wants{responseCode: http.StatusCreated, resultResponse: "short_URL"},
+		},
+		{name: "POST test #4 (Negative)",
+			args:  args{requestBody: "bad_URL"},
+			wants: wants{responseCode: http.StatusConflict, resultResponse: ""},
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/", strings.NewReader(tt.args.requestBody))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.PostMethodHandler)
+			h := http.HandlerFunc(userHandler.PostMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			fmt.Println(res)
@@ -99,9 +213,10 @@ func TestZipURLHandler_postMethodHandler(t *testing.T) {
 	}
 }
 
-func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
+/****/
+func TestUserHandler_postApiShortenHandler(t *testing.T) {
 	type args struct {
-		request *ShortenRequestDTO
+		request *dto.ShortenRequestDTO
 	}
 	type wants struct {
 		responseCode int
@@ -113,7 +228,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 		wants wants
 	}{
 		{name: "POST test #1 (Positive)",
-			args: args{request: &ShortenRequestDTO{"full_URL"}},
+			args: args{request: &dto.ShortenRequestDTO{URL: "original_URL"}},
 			wants: wants{responseCode: http.StatusCreated,
 				response: "short_URL"},
 		},
@@ -123,7 +238,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 				response: ""},
 		},
 		{name: "POST test #3 (Object with empty url)",
-			args: args{request: &ShortenRequestDTO{""}},
+			args: args{request: &dto.ShortenRequestDTO{URL: ""}},
 			wants: wants{responseCode: http.StatusBadRequest,
 				response: ""},
 		},
@@ -136,7 +251,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 			}
 			request := httptest.NewRequest("POST", "/api/shorten", bytes.NewReader(requestBody))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.PostAPIShortenHandler)
+			h := http.HandlerFunc(userHandler.PostAPIShortenHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			fmt.Println(res)
@@ -150,7 +265,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
-				var resultDTO ShortenResponseDTO
+				var resultDTO dto.ShortenResponseDTO
 				if err := json.Unmarshal(responseBody, &resultDTO); err != nil {
 					t.Error("Can't unmarshal dto", err)
 				}
@@ -160,7 +275,7 @@ func TestZipURLHandler_postApiShortenHandler(t *testing.T) {
 	}
 }
 
-func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
+func TestUserHandler_postApiShortenHandler2(t *testing.T) {
 	type args struct {
 		requestBody string
 	}
@@ -188,7 +303,7 @@ func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest("POST", "/api/shorten", strings.NewReader(tt.args.requestBody))
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.PostAPIShortenHandler)
+			h := http.HandlerFunc(userHandler.PostAPIShortenHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			fmt.Println(res)
@@ -202,7 +317,7 @@ func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
 				if err != nil {
 					t.Errorf("Can't read response body, %e", err)
 				}
-				var resultDTO ShortenResponseDTO
+				var resultDTO dto.ShortenResponseDTO
 				if err := json.Unmarshal(responseBody, &resultDTO); err != nil {
 					t.Error("Can't unmarshal dto", err)
 				}
@@ -212,7 +327,7 @@ func TestZipURLHandler_postApiShortenHandler2(t *testing.T) {
 	}
 }
 
-func TestZipURLHandler_getMethodHandler(t *testing.T) {
+func TestUserHandler_getMethodHandler(t *testing.T) {
 	type args struct {
 		shortURLKey string
 	}
@@ -227,7 +342,7 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 	}{
 		{name: "GET test #1 (Positive).",
 			args:  args{shortURLKey: "short_URL"},
-			wants: wants{responseCode: http.StatusTemporaryRedirect, resultResponse: "full_URL"},
+			wants: wants{responseCode: http.StatusTemporaryRedirect, resultResponse: "original_URL"},
 		},
 		{name: "GET test #2 (Negative).",
 			args:  args{shortURLKey: ""},
@@ -238,7 +353,7 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest("GET", fmt.Sprintf("/%s", tt.args.shortURLKey), nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.GetMethodHandler)
+			h := http.HandlerFunc(userHandler.GetMethodHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 
@@ -252,7 +367,7 @@ func TestZipURLHandler_getMethodHandler(t *testing.T) {
 	}
 }
 
-func TestZipURLHandler_DefaultHandler(t *testing.T) {
+func TestUserHandler_DefaultHandler(t *testing.T) {
 	type args struct {
 		method string
 	}
@@ -286,7 +401,7 @@ func TestZipURLHandler_DefaultHandler(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			request := httptest.NewRequest(tt.args.method, "/", nil)
 			w := httptest.NewRecorder()
-			h := http.HandlerFunc(handler.DefaultHandler)
+			h := http.HandlerFunc(userHandler.DefaultHandler)
 			h.ServeHTTP(w, request)
 			res := w.Result()
 			defer res.Body.Close()
