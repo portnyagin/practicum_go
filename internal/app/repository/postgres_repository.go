@@ -104,7 +104,7 @@ func (r *PostgresRepository) FindByShort(ctx context.Context, userID string, sho
 	var res string
 
 	err = row.Scan(&res)
-	if err.Error() == "no rows in result set" {
+	if err != nil && err.Error() == "no rows in result set" {
 		return "", &model.NoRowFound
 	}
 	if err != nil {
