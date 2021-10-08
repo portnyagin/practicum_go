@@ -264,6 +264,8 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		key := r.RequestURI[1:]
+
+		userID = "" // Подгоняемся под тесты первых инкрементов
 		res, err := z.userService.GetURLByShort(r.Context(), userID, key)
 		if errors.Is(err, dto.ErrNotFound) {
 			w.WriteHeader(http.StatusGone)

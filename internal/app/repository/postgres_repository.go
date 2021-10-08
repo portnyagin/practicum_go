@@ -89,7 +89,15 @@ func (r *PostgresRepository) SaveBatch(ctx context.Context, src model.UserBatchU
 }
 
 func (r *PostgresRepository) FindByShort(ctx context.Context, userID string, shortURL string) (string, error) {
-	row, err := r.handler.QueryRow(ctx, database.GetOriginalURLByShort, userID, shortURL)
+	var (
+		err error
+		row basedbhandler.Row
+	)
+	if userID == "" {
+		row, err = r.handler.QueryRow(ctx, database.GetOriginalURLByShort, shortURL)
+	} else {
+		row, err = r.handler.QueryRow(ctx, database.GetOriginalURLByShortForUser, userID, shortURL)
+	}
 	if err != nil {
 		return "", err
 	}
