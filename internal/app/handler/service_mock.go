@@ -39,8 +39,8 @@ func (s *UserServiceMock) SaveBatch(ctx context.Context, userID string, srcDTO [
 	return res, args.Error(2)
 }
 
-func (s *UserServiceMock) GetURLByShort(ctx context.Context, shortURL string) (string, error) {
-	args := s.Called(shortURL)
+func (s *UserServiceMock) GetURLByShort(ctx context.Context, userID string, shortURL string) (string, error) {
+	args := s.Called(userID, shortURL)
 	return args.String(0), args.Error(1)
 }
 

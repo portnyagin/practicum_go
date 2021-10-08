@@ -27,4 +27,5 @@ type UserBatchResultDTO struct {
 
 type BatchDeleteDTO = string
 
-var ErrDuplicateKey = errors.New("no rows in result set")
+var ErrDuplicateKey = errors.New("duplicate key")
+var ErrNotFound = errors.New("no rows in result set")

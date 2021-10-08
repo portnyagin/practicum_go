@@ -17,7 +17,7 @@ type UserService interface {
 	GetURLsByUser(ctx context.Context, userID string) ([]dto.UserURLsDTO, error)
 	SaveUserURL(ctx context.Context, userID string, originalURL string, shortURL string) error
 	SaveBatch(ctx context.Context, userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
-	GetURLByShort(ctx context.Context, shortURL string) (string, error)
+	GetURLByShort(ctx context.Context, userID string, shortURL string) (string, error)
 	ZipURL(url string) (string, string, error)
 	Ping(ctx context.Context) bool
 }
@@ -258,8 +258,18 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 		writeBadRequest(w)
 		return
 	} else {
+		userID, err := z.getTokenCookie(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		key := r.RequestURI[1:]
-		res, err := z.userService.GetURLByShort(r.Context(), key)
+		res, err := z.userService.GetURLByShort(r.Context(), userID, key)
+		if errors.Is(err, dto.ErrNotFound) {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
+
 		if err != nil {
 			writeBadRequest(w)
 			return

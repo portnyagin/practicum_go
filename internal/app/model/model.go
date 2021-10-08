@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"errors"
 	"github.com/jackc/pgerrcode"
 )
 
@@ -33,7 +34,7 @@ type UserBatchURLs struct {
 
 type DBRepository interface {
 	FindByUser(ctx context.Context, userID string) ([]UserURLs, error)
-	FindByShort(ctx context.Context, shortURL string) (string, error)
+	FindByShort(ctx context.Context, userID string, shortURL string) (string, error)
 	Save(ctx context.Context, userID string, originalURL string, shortURL string) error
 	SaveBatch(ctx context.Context, data UserBatchURLs) error
 	Ping(ctx context.Context) (bool, error)
@@ -50,6 +51,7 @@ func (t *DatabaseError) Error() string {
 
 var (
 	UniqueViolation DatabaseError = DatabaseError{Code: pgerrcode.UniqueViolation}
+	NoRowFound      DatabaseError = DatabaseError{Err: errors.New("no rows in result set")}
 )
 
 type DeleteRepository interface {
