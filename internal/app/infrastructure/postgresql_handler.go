@@ -69,7 +69,6 @@ func (handler *PostgresqlHandler) QueryRow(ctx context.Context, statement string
 	} else {
 		row = conn.QueryRow(ctx, statement)
 	}
-
 	return row, nil
 }
 

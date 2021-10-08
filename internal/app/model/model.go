@@ -51,3 +51,9 @@ func (t *DatabaseError) Error() string {
 var (
 	UniqueViolation DatabaseError = DatabaseError{Code: pgerrcode.UniqueViolation}
 )
+
+type DeleteRepository interface {
+	BatchDelete(ctx context.Context, userID string, URLList []BatchDeleteURL) error
+}
+
+type BatchDeleteURL = string

@@ -22,16 +22,21 @@ type UserService interface {
 	Ping(ctx context.Context) bool
 }
 
+type DeleteService interface {
+	DeleteBatch(ctx context.Context, userID string, URLList []dto.BatchDeleteDTO) error
+}
+
 type UserHandler struct {
 	userService   UserService
 	cryptoService CryptoService
+	DeleteService DeleteService
 }
 
-func NewUserHandler(userService UserService, cs CryptoService) *UserHandler {
+func NewUserHandler(userService UserService, cs CryptoService, ds DeleteService) *UserHandler {
 	var h UserHandler
 	h.userService = userService
 	h.cryptoService = cs
-
+	h.DeleteService = ds
 	return &h
 }
 
@@ -265,8 +270,35 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
+func (z *UserHandler) AsyncDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := getRequestBody(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	userID, err := z.getTokenCookie(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var req []dto.BatchDeleteDTO
+	if err := json.Unmarshal(b, &req); err != nil {
+		writeBadRequest(w)
+		return
+	}
+	err = z.DeleteService.DeleteBatch(r.Context(), userID, req)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusAccepted)
+
+}
+
+func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("Hello"))
 	if err != nil {
 		panic("Can't write response")

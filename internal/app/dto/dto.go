@@ -25,4 +25,6 @@ type UserBatchResultDTO struct {
 	ShortURL      string `json:"short_url"`
 }
 
+type BatchDeleteDTO = string
+
 var ErrDuplicateKey = errors.New("no rows in result set")

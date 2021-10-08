@@ -30,17 +30,19 @@ func Start() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fileRepository, err := repository.NewFileRepository(config.FileStorage)
 
+	fileRepository, err := repository.NewFileRepository(config.FileStorage)
 	if err != nil {
 		fmt.Println("can't init file repository", err)
 		return
 	}
+
 	postgresHandler, err := infrastructure.NewPostgresqlHandler(context.Background(), config.DatabaseDSN)
 	if err != nil {
 		fmt.Println("can't init postgres handler", err)
 		return
 	}
+
 	if config.Reinit {
 		err = repository.ClearDatabase(context.Background(), postgresHandler)
 		if err != nil {
@@ -59,12 +61,17 @@ func Start() {
 		fmt.Println("can't init postgres repository", err)
 		return
 	}
-	//service := service2.NewZipService(fileRepository, config.BaseURL)
+	deleteRepository, err := repository.NewDeleteRepository(postgresHandler)
+	if err != nil {
+		fmt.Println("can't init delete repository", err)
+		return
+	}
+
 	cs, _ := service2.NewCryptoService()
-	userService := service2.NewUserService(postgresRepository, fileRepository, config.BaseURL)
-	//zip, _ := service2.NewCompressService()
-	//h := handler.NewZipURLHandler(service)
-	uh := handler.NewUserHandler(userService, cs)
+	us := service2.NewUserService(postgresRepository, fileRepository, config.BaseURL)
+
+	ds := service2.NewDeleteService(deleteRepository, config.DeletePoolSize, config.DeleteTaskSize)
+	uh := handler.NewUserHandler(us, cs, ds)
 	router := chi.NewRouter()
 	router.Use(middleware.CleanPath)
 	router.Use(middleware.Logger)
@@ -81,6 +88,7 @@ func Start() {
 		r.Put("/", uh.DefaultHandler)
 		r.Patch("/", uh.DefaultHandler)
 		r.Delete("/", uh.DefaultHandler)
+		r.Delete("/api/user/urls", uh.AsyncDeleteHandler)
 	})
 
 	err = http.ListenAndServe(config.ServerAddress, router)
