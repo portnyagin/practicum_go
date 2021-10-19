@@ -39,7 +39,7 @@ func NewCryptoService() (*CryptoServiceImpl, error) {
 }
 
 func (s *CryptoServiceImpl) generateUserID() (string, error) {
-	uid := strconv.FormatInt(time.Now().Unix(), 10)
+	uid := strconv.FormatInt(time.Now().UnixNano(), 10)
 	return uid, nil
 }
 

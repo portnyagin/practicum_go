@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"net/http"
 )
@@ -63,8 +64,10 @@ func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (st
 		ok, userID = z.cryptoService.Validate(token.Value)
 	}
 	if errors.Is(err, http.ErrNoCookie) || !ok {
+		fmt.Println("Cook new cookie")
 		var newToken *http.Cookie
 		newToken, userID, err = z.bakeCookie()
+		fmt.Println(userID)
 		if err != nil {
 			return "", err
 		}
