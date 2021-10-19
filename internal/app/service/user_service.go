@@ -52,6 +52,7 @@ func (s *UserService) GetURLsByUser(ctx context.Context, userID string) ([]dto.U
 		return nil, err
 	}
 	var resDtoList []dto.UserURLsDTO
+	resDtoList = make([]dto.UserURLsDTO, 0)
 	for _, rec := range resArr {
 		d, err := s.mapUserURLsDTO(&rec)
 		if err != nil {
