@@ -41,8 +41,8 @@ func (config *AppConfig) Init() error {
 		config.BaseURL += "/"
 	}
 
-	config.DeletePoolSize = 2
-	config.DeleteTaskSize = 10
+	config.DeletePoolSize = 5
+	config.DeleteTaskSize = 500
 	return nil
 }
 
