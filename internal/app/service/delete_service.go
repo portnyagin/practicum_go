@@ -6,7 +6,6 @@ import (
 	"github.com/portnyagin/practicum_go/internal/app/model"
 	"math"
 	"sync"
-	"time"
 )
 
 type pool struct {
@@ -98,7 +97,7 @@ func (s *DeleteService) startWorkerPool() {
 					if err != nil {
 						panic(err)
 					}
-					time.Sleep(time.Second * 5)
+					//time.Sleep(time.Second * 5)
 				}
 			}
 		}()
