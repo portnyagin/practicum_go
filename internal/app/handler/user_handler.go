@@ -264,14 +264,14 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 		writeBadRequest(w)
 		return
 	} else {
-		userID, err := z.getTokenCookie(w, r)
+		_, err := z.getTokenCookie(w, r)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		key := r.RequestURI[1:]
 
-		userID = "" // Подгоняемся под тесты первых инкрементов
+		userID := "" // Подгоняемся под тесты первых инкрементов
 		res, err := z.userService.GetURLByShort(r.Context(), userID, key)
 		if errors.Is(err, dto.ErrNotFound) {
 			w.WriteHeader(http.StatusGone)
