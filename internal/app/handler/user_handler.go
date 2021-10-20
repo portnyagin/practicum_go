@@ -2,7 +2,6 @@ package handler
 
 import (
 	"context"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,7 +11,7 @@ import (
 
 type CryptoService interface {
 	Validate(token string) (bool, string)
-	GetNewUserToken() (string, []byte, error)
+	GetNewUserToken() (string, string, error)
 }
 
 type UserService interface {
@@ -49,7 +48,7 @@ func (z *UserHandler) bakeCookie() (*http.Cookie, string, error) {
 		return nil, "", err
 	}
 	c.Name = "token"
-	c.Value = base64.StdEncoding.EncodeToString(token)
+	c.Value = token
 	return &c, userID, nil
 }
 
@@ -62,11 +61,7 @@ func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (st
 	)
 	token, err := r.Cookie("token")
 	if err == nil {
-		t, err := base64.StdEncoding.DecodeString(token.Value)
-		if err != nil {
-			return "", err
-		}
-		ok, userID = z.cryptoService.Validate(string(t))
+		ok, userID = z.cryptoService.Validate(token.Value)
 		if !ok {
 			fmt.Println("Cookie got, but invalid")
 		}
