@@ -60,9 +60,9 @@ func (s *CryptoServiceMock) Validate(token string) (bool, string) {
 	return args.Bool(0), token
 }
 
-func (s *CryptoServiceMock) GetNewUserToken() (string, string, error) {
+func (s *CryptoServiceMock) GetNewUserToken() (string, []byte, error) {
 	args := s.Called()
-	return args.String(0), args.String(1), args.Error(2)
+	return args.String(0), []byte(args.String(1)), args.Error(2)
 }
 
 //----------------------------------------------------------------

@@ -4,6 +4,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -45,22 +46,23 @@ func (s *CryptoServiceImpl) generateUserID() (string, error) {
 
 // function for user_id and encrypted token generation
 // returned values:  user_id, token, error
-func (s *CryptoServiceImpl) GetNewUserToken() (string, string, error) {
+func (s *CryptoServiceImpl) GetNewUserToken() (string, []byte, error) {
 	user, err := s.generateUserID()
 	if err != nil {
-		return "", "", nil
+		return "", nil, nil
 	}
 	token, err := s.encrypt([]byte(user))
 	if err != nil {
-		return "", "", nil
+		return "", nil, nil
 	}
-	return user, string(token), nil
+	return user, token, nil
 
 }
 
 // Function try to encrypt given token
 // Return true and decrypted user_id. Else - false
 func (s *CryptoServiceImpl) Validate(token string) (bool, string) {
+	fmt.Println("token is", token)
 	res, err := s.decrypt([]byte(token))
 	if err != nil {
 		return false, ""
