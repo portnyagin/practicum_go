@@ -39,8 +39,8 @@ func (s *UserServiceMock) SaveBatch(ctx context.Context, userID string, srcDTO [
 	return res, args.Error(2)
 }
 
-func (s *UserServiceMock) GetURLByShort(ctx context.Context, shortURL string) (string, error) {
-	args := s.Called(shortURL)
+func (s *UserServiceMock) GetURLByShort(ctx context.Context, userID string, shortURL string) (string, error) {
+	args := s.Called(userID, shortURL)
 	return args.String(0), args.Error(1)
 }
 
@@ -63,4 +63,15 @@ func (s *CryptoServiceMock) Validate(token string) (bool, string) {
 func (s *CryptoServiceMock) GetNewUserToken() (string, string, error) {
 	args := s.Called()
 	return args.String(0), args.String(1), args.Error(2)
+}
+
+//----------------------------------------------------------------
+
+type DeleteServiceMock struct {
+	mock.Mock
+}
+
+func (s *DeleteServiceMock) DeleteBatch(ctx context.Context, userID string, URLList []dto.BatchDeleteDTO) error {
+	args := s.Called(userID, URLList)
+	return args.Error(0)
 }

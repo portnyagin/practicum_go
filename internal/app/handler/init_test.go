@@ -10,6 +10,7 @@ import (
 var userService *UserServiceMock
 var cryptoService *CryptoServiceMock
 var userHandler *UserHandler
+var deleteService *DeleteServiceMock
 
 func TestMain(m *testing.M) {
 	userService = new(UserServiceMock)
@@ -26,13 +27,18 @@ func TestMain(m *testing.M) {
 
 	userService.On("SaveUserURL", "user_id", "original_URL", "short_URL").Return(nil)
 	userService.On("SaveUserURL", "user_id", "bad_URL", "short_URL").Return(dto.ErrDuplicateKey)
-	userService.On("GetURLByShort", "short_URL").Return("original_URL", nil)
+	userService.On("GetURLByShort", "user_id", "short_URL").Return("original_URL", nil)
+	userService.On("GetURLByShort", "", "short_URL").Return("original_URL", nil)
+	userService.On("GetURLByShort", "user_id", "badURL").Return("", dto.ErrNotFound)
+	userService.On("GetURLByShort", "", "badURL").Return("", dto.ErrNotFound)
 
 	cryptoService := new(CryptoServiceMock)
 	cryptoService.On("Validate", "user_id").Return(true, "user_id")
 
 	cryptoService.On("GetNewUserToken").Return("user_id", "valid_user_Token", nil)
 
-	userHandler = NewUserHandler(userService, cryptoService)
+	deleteService = new(DeleteServiceMock)
+
+	userHandler = NewUserHandler(userService, cryptoService, deleteService)
 	os.Exit(m.Run())
 }

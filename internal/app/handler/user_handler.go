@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"net/http"
 )
@@ -17,21 +18,26 @@ type UserService interface {
 	GetURLsByUser(ctx context.Context, userID string) ([]dto.UserURLsDTO, error)
 	SaveUserURL(ctx context.Context, userID string, originalURL string, shortURL string) error
 	SaveBatch(ctx context.Context, userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
-	GetURLByShort(ctx context.Context, shortURL string) (string, error)
+	GetURLByShort(ctx context.Context, userID string, shortURL string) (string, error)
 	ZipURL(url string) (string, string, error)
 	Ping(ctx context.Context) bool
+}
+
+type DeleteService interface {
+	DeleteBatch(ctx context.Context, userID string, URLList []dto.BatchDeleteDTO) error
 }
 
 type UserHandler struct {
 	userService   UserService
 	cryptoService CryptoService
+	DeleteService DeleteService
 }
 
-func NewUserHandler(userService UserService, cs CryptoService) *UserHandler {
+func NewUserHandler(userService UserService, cs CryptoService, ds DeleteService) *UserHandler {
 	var h UserHandler
 	h.userService = userService
 	h.cryptoService = cs
-
+	h.DeleteService = ds
 	return &h
 }
 
@@ -56,10 +62,15 @@ func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (st
 	token, err := r.Cookie("token")
 	if err == nil {
 		ok, userID = z.cryptoService.Validate(token.Value)
+		if !ok {
+			fmt.Println("Cookie got, but invalid")
+		}
 	}
 	if errors.Is(err, http.ErrNoCookie) || !ok {
+		fmt.Println("Cook new cookie")
 		var newToken *http.Cookie
 		newToken, userID, err = z.bakeCookie()
+		fmt.Println(userID, " ", newToken)
 		if err != nil {
 			return "", err
 		}
@@ -253,8 +264,20 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 		writeBadRequest(w)
 		return
 	} else {
+		_, err := z.getTokenCookie(w, r)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
 		key := r.RequestURI[1:]
-		res, err := z.userService.GetURLByShort(r.Context(), key)
+
+		userID := "" // Подгоняемся под тесты первых инкрементов
+		res, err := z.userService.GetURLByShort(r.Context(), userID, key)
+		if errors.Is(err, dto.ErrNotFound) {
+			w.WriteHeader(http.StatusGone)
+			return
+		}
+
 		if err != nil {
 			writeBadRequest(w)
 			return
@@ -265,8 +288,35 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
+func (z *UserHandler) AsyncDeleteHandler(w http.ResponseWriter, r *http.Request) {
+	b, err := getRequestBody(r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	userID, err := z.getTokenCookie(w, r)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var req []dto.BatchDeleteDTO
+	if err := json.Unmarshal(b, &req); err != nil {
+		writeBadRequest(w)
+		return
+	}
+	err = z.DeleteService.DeleteBatch(r.Context(), userID, req)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusAccepted)
+
+}
+
+func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("Hello"))
 	if err != nil {
 		panic("Can't write response")

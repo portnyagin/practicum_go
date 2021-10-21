@@ -88,13 +88,25 @@ func (r *PostgresRepository) SaveBatch(ctx context.Context, src model.UserBatchU
 	return nil
 }
 
-func (r *PostgresRepository) FindByShort(ctx context.Context, shortURL string) (string, error) {
-	row, err := r.handler.QueryRow(ctx, database.GetOriginalURLByShort, shortURL)
+func (r *PostgresRepository) FindByShort(ctx context.Context, userID string, shortURL string) (string, error) {
+	var (
+		err error
+		row basedbhandler.Row
+	)
+	if userID == "" {
+		row, err = r.handler.QueryRow(ctx, database.GetOriginalURLByShort, shortURL)
+	} else {
+		row, err = r.handler.QueryRow(ctx, database.GetOriginalURLByShortForUser, userID, shortURL)
+	}
 	if err != nil {
 		return "", err
 	}
 	var res string
+
 	err = row.Scan(&res)
+	if err != nil && err.Error() == "no rows in result set" {
+		return "", &model.NoRowFound
+	}
 	if err != nil {
 		return "", err
 	}

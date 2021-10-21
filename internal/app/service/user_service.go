@@ -52,6 +52,7 @@ func (s *UserService) GetURLsByUser(ctx context.Context, userID string) ([]dto.U
 		return nil, err
 	}
 	var resDtoList []dto.UserURLsDTO
+	resDtoList = make([]dto.UserURLsDTO, 0)
 	for _, rec := range resArr {
 		d, err := s.mapUserURLsDTO(&rec)
 		if err != nil {
@@ -107,11 +108,14 @@ func (s *UserService) SaveBatch(ctx context.Context, userID string, srcDTO []dto
 	return resDTO, nil
 }
 
-func (s *UserService) GetURLByShort(ctx context.Context, shortURL string) (string, error) {
+func (s *UserService) GetURLByShort(ctx context.Context, userID string, shortURL string) (string, error) {
 	if shortURL == "" {
 		return "", errors.New("shortURL is empty")
 	}
-	originalURL, err := s.dbRepository.FindByShort(ctx, shortURL)
+	originalURL, err := s.dbRepository.FindByShort(ctx, userID, shortURL)
+	if errors.Is(err, &model.NoRowFound) {
+		return "", dto.ErrNotFound
+	}
 	if err != nil {
 		return "", err
 	}
