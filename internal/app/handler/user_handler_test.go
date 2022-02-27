@@ -348,6 +348,10 @@ func TestUserHandler_getMethodHandler(t *testing.T) {
 			args:  args{shortURLKey: ""},
 			wants: wants{responseCode: http.StatusBadRequest, resultResponse: ""},
 		},
+		{name: "GET test #3 (Negative). Unexists short url",
+			args:  args{shortURLKey: "badURL"},
+			wants: wants{responseCode: http.StatusGone, resultResponse: ""},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -413,6 +417,39 @@ func TestUserHandler_DefaultHandler(t *testing.T) {
 				t.Errorf("Can't read response body, %e", err)
 			}
 			assert.Equal(t, "Unsupported request type", string(responseBody), "Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
+		})
+	}
+}
+
+func TestUserHandler_AsyncDeleteHandler(t *testing.T) {
+	type args struct {
+		method string
+	}
+	type wants struct {
+		responseCode   int
+		resultResponse string
+	}
+	tests := []struct {
+		name  string
+		args  args
+		wants wants
+	}{}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := httptest.NewRequest(tt.args.method, "/", nil)
+			w := httptest.NewRecorder()
+			h := http.HandlerFunc(userHandler.DefaultHandler)
+			h.ServeHTTP(w, request)
+			res := w.Result()
+			defer res.Body.Close()
+
+			//assert.Equal(t, tt.wants.responseCode, res.StatusCode, "Expected status %d, got %d", tt.wants.responseCode, res.StatusCode)
+			//responseBody, err := io.ReadAll(res.Body)
+			//
+			//if err != nil {
+			//	t.Errorf("Can't read response body, %e", err)
+			//}
+			//assert.Equal(t, "Unsupported request type", string(responseBody), "Expected body is %s, got %s", tt.wants.resultResponse, string(responseBody))
 		})
 	}
 }
