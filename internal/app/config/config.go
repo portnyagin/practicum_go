@@ -11,7 +11,7 @@ type AppConfig struct {
 	ServerAddress  string `env:"SERVER_ADDRESS" envDefault:":8080"`
 	BaseURL        string `env:"BASE_URL" envDefault:"http://localhost:8080/"`
 	FileStorage    string `env:"FILE_STORAGE_PATH" envDefault:"./data/storage.dat"`
-	DatabaseDSN    string `env:"DATABASE_DSN" envDefault:"postgresql://practicum:practicum@127.0.0.1:5432/postgres"`
+	DatabaseDSN    string `env:"DATABASE_DSN" envDefault:"postgresql://practicum:practicum@127.0.0.1:5432/mdb"`
 	Reinit         bool   `env:"REINIT" envDefault:"true"`
 	DeleteTaskSize int
 	DeletePoolSize int

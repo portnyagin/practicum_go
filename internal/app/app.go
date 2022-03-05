@@ -13,6 +13,7 @@ import (
 	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
 	"net/http"
+	_ "net/http/pprof" // подключаем пакет pprof
 )
 
 /*
@@ -90,6 +91,23 @@ func Start() {
 		r.Delete("/", uh.DefaultHandler)
 		r.Delete("/api/user/urls", uh.AsyncDeleteHandler)
 	})
+
+	//fmem, err := os.Create("./profiles/base.pprof")
+	//if err != nil {
+	//	fmt.Println("can't create profile file")
+	//	return
+	//}
+	//defer fmem.Close()
+	//
+	//err = pprof.WriteHeapProfile(fmem)
+	//if err != nil {
+	//	fmt.Println("can't start heap profile")
+	//	return
+	//}
+
+	go func() {
+		log.Println(http.ListenAndServe("localhost:6060", nil))
+	}()
 
 	err = http.ListenAndServe(config.ServerAddress, router)
 	if err != nil {
