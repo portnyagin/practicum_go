@@ -81,7 +81,7 @@ func Start() {
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", uh.HelloHandler)
 		r.Get("/{id}", uh.GetMethodHandler)
-		r.Get("/user/urls", uh.GetUserURLsHandler)
+		r.Get("/api/user/urls", uh.GetUserURLsHandler)
 		r.Get("/ping", uh.PingHandler)
 		r.Post("/api/shorten", uh.PostAPIShortenHandler)
 		r.Post("/api/shorten/batch", uh.PostShortenBatchHandler)
