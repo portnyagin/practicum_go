@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/portnyagin/practicum_go/internal/app/model"
+	"github.com/portnyagin/practicum_go/internal/app/repository"
 )
 
 type EncodeFunc func(str string) string
@@ -47,10 +48,15 @@ func (s *UserService) GetURLsByUser(ctx context.Context, userID string) ([]dto.U
 	if userID == "" {
 		return nil, errors.New("user_id is empty")
 	}
-	resArr, err := s.dbRepository.FindByUser(ctx, userID)
-	if err != nil {
-		return nil, err
+	var resArr []model.UserURLs
+	var err error
+	if myValuePtr, ok := s.dbRepository.(*repository.PostgresRepository); ok && myValuePtr != nil {
+		resArr, err = s.dbRepository.FindByUser(ctx, userID)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	var resDtoList []dto.UserURLsDTO
 	resDtoList = make([]dto.UserURLsDTO, 0)
 	for _, rec := range resArr {
@@ -69,12 +75,15 @@ func (s *UserService) SaveUserURL(ctx context.Context, userID string, originalUR
 		return err
 	}
 
-	err = s.dbRepository.Save(ctx, userID, originalURL, shortURL)
-	if errors.Is(err, &model.UniqueViolation) {
-		return dto.ErrDuplicateKey
-	}
-	if err != nil {
-		return err
+	//if s.dbRepository != nil
+	if myValuePtr, ok := s.dbRepository.(*repository.PostgresRepository); ok && myValuePtr != nil {
+		err = s.dbRepository.Save(ctx, userID, originalURL, shortURL)
+		if errors.Is(err, &model.UniqueViolation) {
+			return dto.ErrDuplicateKey
+		}
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -112,14 +121,19 @@ func (s *UserService) GetURLByShort(ctx context.Context, userID string, shortURL
 	if shortURL == "" {
 		return "", errors.New("shortURL is empty")
 	}
-	originalURL, err := s.dbRepository.FindByShort(ctx, userID, shortURL)
-	if errors.Is(err, &model.NoRowFound) {
-		return "", dto.ErrNotFound
-	}
+	originalURL, err := s.fileRepository.Find(shortURL)
 	if err != nil {
 		return "", err
 	}
-
+	if myValuePtr, ok := s.dbRepository.(*repository.PostgresRepository); ok && myValuePtr != nil {
+		originalURL, err = s.dbRepository.FindByShort(ctx, userID, shortURL)
+		if errors.Is(err, &model.NoRowFound) {
+			return "", dto.ErrNotFound
+		}
+		if err != nil {
+			return "", err
+		}
+	}
 	return originalURL, nil
 }
 

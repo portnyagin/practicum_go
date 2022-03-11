@@ -13,6 +13,7 @@ import (
 	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
 	"net/http"
+	"net/http/pprof" // подключаем пакет pprof
 )
 
 /*
@@ -37,34 +38,44 @@ func Start() {
 		return
 	}
 
-	postgresHandler, err := infrastructure.NewPostgresqlHandler(context.Background(), config.DatabaseDSN)
-	if err != nil {
-		fmt.Println("can't init postgres handler", err)
-		return
-	}
+	var (
+		postgresHandler    *infrastructure.PostgresqlHandler
+		postgresRepository *repository.PostgresRepository
+		deleteRepository   *repository.DeleteRepository
+	)
 
-	if config.Reinit {
-		err = repository.ClearDatabase(context.Background(), postgresHandler)
+	if config.DatabaseDSN == "" {
+		postgresHandler = nil
+		postgresRepository = nil
+		deleteRepository = nil
+	} else {
+		postgresHandler, err = infrastructure.NewPostgresqlHandler(context.Background(), config.DatabaseDSN)
 		if err != nil {
-			fmt.Println("can't clear database structure", err)
+			fmt.Println("can't init postgres handler", err)
 			return
 		}
-	}
-	err = repository.InitDatabase(context.Background(), postgresHandler)
-	if err != nil {
-		fmt.Println("can't init database structure", err)
-		return
-	}
-
-	postgresRepository, err := repository.NewPostgresRepository(postgresHandler)
-	if err != nil {
-		fmt.Println("can't init postgres repository", err)
-		return
-	}
-	deleteRepository, err := repository.NewDeleteRepository(postgresHandler)
-	if err != nil {
-		fmt.Println("can't init delete repository", err)
-		return
+		if config.Reinit {
+			err = repository.ClearDatabase(context.Background(), postgresHandler)
+			if err != nil {
+				fmt.Println("can't clear database structure", err)
+				return
+			}
+		}
+		err = repository.InitDatabase(context.Background(), postgresHandler)
+		if err != nil {
+			fmt.Println("can't init database structure", err)
+			return
+		}
+		postgresRepository, err = repository.NewPostgresRepository(postgresHandler)
+		if err != nil {
+			fmt.Println("can't init postgres repository", err)
+			return
+		}
+		deleteRepository, err = repository.NewDeleteRepository(postgresHandler)
+		if err != nil {
+			fmt.Println("can't init delete repository", err)
+			return
+		}
 	}
 
 	cs, _ := service2.NewCryptoService()
@@ -80,7 +91,7 @@ func Start() {
 	router.Route("/", func(r chi.Router) {
 		r.Get("/", uh.HelloHandler)
 		r.Get("/{id}", uh.GetMethodHandler)
-		r.Get("/user/urls", uh.GetUserURLsHandler)
+		r.Get("/api/user/urls", uh.GetUserURLsHandler)
 		r.Get("/ping", uh.PingHandler)
 		r.Post("/api/shorten", uh.PostAPIShortenHandler)
 		r.Post("/api/shorten/batch", uh.PostShortenBatchHandler)
@@ -90,6 +101,17 @@ func Start() {
 		r.Delete("/", uh.DefaultHandler)
 		r.Delete("/api/user/urls", uh.AsyncDeleteHandler)
 	})
+
+	debugMux := http.NewServeMux()
+	debugMux.HandleFunc("/debug/pprof/", pprof.Index)
+	debugMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	debugMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	debugMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	debugMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	go func() {
+		fmt.Println(http.ListenAndServe("localhost:6060", debugMux))
+	}()
 
 	err = http.ListenAndServe(config.ServerAddress, router)
 	if err != nil {
