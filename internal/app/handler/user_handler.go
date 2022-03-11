@@ -9,24 +9,39 @@ import (
 	"net/http"
 )
 
+// CryptoService - это интерфейс для работы с токеном.
 type CryptoService interface {
 	Validate(token string) (bool, string)
 	GetNewUserToken() (string, string, error)
 }
 
+// UserService - это интерфейс для работы с коллекцией url пользователя.
 type UserService interface {
+	// GetURLsByUser возвращает коллекцию пар <short_url,original_url>.
 	GetURLsByUser(ctx context.Context, userID string) ([]dto.UserURLsDTO, error)
+
+	// SaveUserURL Сохраняет пару <short_url,original_url> в хранилище для указанного пользователя.
 	SaveUserURL(ctx context.Context, userID string, originalURL string, shortURL string) error
+
+	// SaveBatch реализует пакетное преобразование и сохранение url'ов для указанного пользователя. Возвращает массив сокращенных url'ов.
 	SaveBatch(ctx context.Context, userID string, srcDTO []dto.UserBatchDTO) ([]dto.UserBatchResultDTO, error)
+
+	// GetURLByShort выполняет поиск полного url по short_url для указанного пользователя.
 	GetURLByShort(ctx context.Context, userID string, shortURL string) (string, error)
+
+	//ZipURL - возвращает сокращенный url. Возвращает полную ссылку в первом параметре (например, http://localhost/<short_url>), и сокращенный url во втором параметре.
 	ZipURL(url string) (string, string, error)
+
+	// Ping - метод для проверки связи приложения и БД.
 	Ping(ctx context.Context) bool
 }
 
+// DeleteService - это интерфейс для пакетного удаления из коллекции url пользователя.
 type DeleteService interface {
 	DeleteBatch(ctx context.Context, userID string, URLList []dto.BatchDeleteDTO) error
 }
 
+// UserHandler - структура, реализующая основные хендлеры.
 type UserHandler struct {
 	userService   UserService
 	cryptoService CryptoService
@@ -41,6 +56,7 @@ func NewUserHandler(userService UserService, cs CryptoService, ds DeleteService)
 	return &h
 }
 
+// bakeCookie - возвращает новую http.Cookie c именем "token".
 func (z *UserHandler) bakeCookie() (*http.Cookie, string, error) {
 	var c http.Cookie
 	userID, token, err := z.cryptoService.GetNewUserToken()
@@ -52,7 +68,7 @@ func (z *UserHandler) bakeCookie() (*http.Cookie, string, error) {
 	return &c, userID, nil
 }
 
-// function try to read cookie from request. If cookie isn't set or cookie isn't valid, then generate and set new cookie
+// getTokenCookie function try to read cookie from request. If cookie isn't set or cookie isn't valid, then generate and set new cookie.
 // return  userID
 func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (string, error) {
 	var (
@@ -83,6 +99,7 @@ func (z *UserHandler) getTokenCookie(w http.ResponseWriter, r *http.Request) (st
 	return userID, nil
 }
 
+// GetUserURLsHandler - handler для  GET /user/urls.
 func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request) {
 	userID, err := z.getTokenCookie(w, r)
 	if err != nil {
@@ -114,6 +131,7 @@ func (z *UserHandler) GetUserURLsHandler(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// PingHandler - handler для GET /ping.
 func (z *UserHandler) PingHandler(w http.ResponseWriter, r *http.Request) {
 	if !z.userService.Ping(r.Context()) {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -122,6 +140,7 @@ func (z *UserHandler) PingHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// PostMethodHandler - handler POST / (сохранение url для пользователя в хранилище).
 func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := getRequestBody(r)
 	if err != nil {
@@ -143,6 +162,7 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 
 		err = z.userService.SaveUserURL(r.Context(), userID, string(b), key)
 		if errors.Is(err, dto.ErrDuplicateKey) {
+			fmt.Println(key)
 			w.WriteHeader(http.StatusConflict)
 			_, err = w.Write([]byte(resURL))
 			if err != nil {
@@ -163,6 +183,7 @@ func (z *UserHandler) PostMethodHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// PostAPIShortenHandler - handler для POST /api/shorten.
 func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := getRequestBody(r)
 	if err != nil {
@@ -218,6 +239,7 @@ func (z *UserHandler) PostAPIShortenHandler(w http.ResponseWriter, r *http.Reque
 	}
 }
 
+// PostShortenBatchHandler - handler  для  POST /api/shorten/batch".
 func (z *UserHandler) PostShortenBatchHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := getRequestBody(r)
 	if err != nil {
@@ -259,6 +281,10 @@ func (z *UserHandler) PostShortenBatchHandler(w http.ResponseWriter, r *http.Req
 
 }
 
+// GetMethodHandler - handler для GET /{id}.
+// Позволяет получить исходную ссылку по сокращенному url для текущего пользователя.
+// В случае успеха - результата записывается в  location.
+// Код успешного ответа - StatusTemporaryRedirect.
 func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	if r.RequestURI == "" || r.RequestURI[1:] == "" {
 		writeBadRequest(w)
@@ -271,7 +297,8 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		key := r.RequestURI[1:]
 
-		userID := "" // Подгоняемся под тесты первых инкрементов
+		// Подгоняемся под тесты первых инкрементов.
+		userID := ""
 		res, err := z.userService.GetURLByShort(r.Context(), userID, key)
 		if errors.Is(err, dto.ErrNotFound) {
 			w.WriteHeader(http.StatusGone)
@@ -288,6 +315,8 @@ func (z *UserHandler) GetMethodHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// AsyncDeleteHandler - handler для DELETE /api/user/urls.
+//Реализует ассинхронное удаление url'ов из хранилища.
 func (z *UserHandler) AsyncDeleteHandler(w http.ResponseWriter, r *http.Request) {
 	b, err := getRequestBody(r)
 	if err != nil {
@@ -315,6 +344,7 @@ func (z *UserHandler) AsyncDeleteHandler(w http.ResponseWriter, r *http.Request)
 
 }
 
+// HelloHandler -  handler для GET / (отладочный handler).
 func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	_, err := w.Write([]byte("Hello"))
@@ -323,6 +353,7 @@ func (z *UserHandler) HelloHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+//DefaultHandler - заглушка для не реализуемых запросов.
 func (z *UserHandler) DefaultHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusBadRequest)
 	_, err := w.Write([]byte("Unsupported request type"))

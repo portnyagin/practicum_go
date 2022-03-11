@@ -6,6 +6,7 @@ import (
 	"errors"
 	"github.com/portnyagin/practicum_go/internal/app/dto"
 	"github.com/portnyagin/practicum_go/internal/app/model"
+	"github.com/portnyagin/practicum_go/internal/app/repository"
 )
 
 type EncodeFunc func(str string) string
@@ -69,12 +70,15 @@ func (s *UserService) SaveUserURL(ctx context.Context, userID string, originalUR
 		return err
 	}
 
-	err = s.dbRepository.Save(ctx, userID, originalURL, shortURL)
-	if errors.Is(err, &model.UniqueViolation) {
-		return dto.ErrDuplicateKey
-	}
-	if err != nil {
-		return err
+	//if s.dbRepository != nil
+	if myValuePtr, ok := s.dbRepository.(*repository.PostgresRepository); ok && myValuePtr != nil {
+		err = s.dbRepository.Save(ctx, userID, originalURL, shortURL)
+		if errors.Is(err, &model.UniqueViolation) {
+			return dto.ErrDuplicateKey
+		}
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }

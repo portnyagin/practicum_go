@@ -8,10 +8,11 @@ import (
 )
 
 type AppConfig struct {
-	ServerAddress  string `env:"SERVER_ADDRESS" envDefault:":8080"`
-	BaseURL        string `env:"BASE_URL" envDefault:"http://localhost:8080/"`
-	FileStorage    string `env:"FILE_STORAGE_PATH" envDefault:"./data/storage.dat"`
-	DatabaseDSN    string `env:"DATABASE_DSN" envDefault:"postgresql://practicum:practicum@127.0.0.1:5432/mdb"`
+	ServerAddress string `env:"SERVER_ADDRESS" envDefault:":8080"`
+	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8080/"`
+	FileStorage   string `env:"FILE_STORAGE_PATH" envDefault:"./data/storage.dat"`
+	//DatabaseDSN    string `env:"DATABASE_DSN" envDefault:"postgresql://practicum:practicum@127.0.0.1:5432/mdb"`
+	DatabaseDSN    string `env:"DATABASE_DSN"`
 	Reinit         bool   `env:"REINIT" envDefault:"true"`
 	DeleteTaskSize int
 	DeletePoolSize int
@@ -31,7 +32,7 @@ func (config *AppConfig) Init() error {
 	pflag.BoolVarP(&config.Reinit, "r", "r", config.Reinit, "Reinit database")
 	pflag.Parse()
 
-	if config.BaseURL == "" || config.FileStorage == "" || config.ServerAddress == "" || config.DatabaseDSN == "" {
+	if config.BaseURL == "" || config.FileStorage == "" || config.ServerAddress == "" /*|| config.DatabaseDSN == ""*/ {
 		if err := env.Parse(&config); err != nil {
 			fmt.Println("can't load service config", err)
 			return err
