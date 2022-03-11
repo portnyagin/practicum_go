@@ -13,6 +13,7 @@ import (
 	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	_ "net/http/pprof" // подключаем пакет pprof
 )
 
@@ -92,22 +93,16 @@ func Start() {
 		r.Delete("/api/user/urls", uh.AsyncDeleteHandler)
 	})
 
-	//fmem, err := os.Create("./profiles/base.pprof")
-	//if err != nil {
-	//	fmt.Println("can't create profile file")
-	//	return
-	//}
-	//defer fmem.Close()
-	//
-	//err = pprof.WriteHeapProfile(fmem)
-	//if err != nil {
-	//	fmt.Println("can't start heap profile")
-	//	return
-	//}
+	debugMux := http.NewServeMux()
 
-	go func() {
-		log.Println(http.ListenAndServe("localhost:6060", nil))
-	}()
+	debugMux.HandleFunc("/debug/pprof/", pprof.Index)
+
+	debugMux.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	debugMux.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	debugMux.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	debugMux.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	fmt.Println(http.ListenAndServe("localhost:6060", debugMux))
 
 	err = http.ListenAndServe(config.ServerAddress, router)
 	if err != nil {
