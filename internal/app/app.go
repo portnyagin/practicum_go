@@ -13,7 +13,6 @@ import (
 	service2 "github.com/portnyagin/practicum_go/internal/app/service"
 	"log"
 	"net/http"
-	"net/http/pprof"
 	_ "net/http/pprof" // подключаем пакет pprof
 )
 
